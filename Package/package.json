@@ -6,7 +6,7 @@
   "license": "AGPL-3.0-only",
   "author": "ace",
   "type": "module",
-  "main": "main/nitrogen_bomb/core.js",
+  "main": "main/nitro_core/snapdragon.js",
   "scripts": {
     "start": "electron .",
     "watch": "cross-env NODE_ENV=developmen nodemon --exec electron .",
@@ -32,15 +32,15 @@
       "license": "LICENSE"
     }
   },
+  "dependencies": {
+    "better-sqlite3": "^12.5.0",
+    "electron-store": "^11.0.2",
+    "html5-qrcode": "^2.3.8"
+  },
   "devDependencies": {
     "cross-env": "^10.1.0",
     "electron": "^39.2.4",
-    "electron-reload": "^2.0.0-alpha.1"
-  },
-  "dependencies": {
-    "axios": "^1.13.2",
-    "better-sqlite3": "^12.5.0",
-    "electron-store": "^11.0.2",
+    "electron-reload": "^2.0.0-alpha.1",
     "nodemon": "^3.1.11"
   }
 }
