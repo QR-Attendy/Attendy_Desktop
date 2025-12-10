@@ -49,6 +49,12 @@
 
           </div>
         </div>
+        <!-- Classmates active panel (students only) -->
+        <div id="classmates-panel"
+          style="display:none; margin-top:12px; max-width:640px; background:#fff; border-radius:8px; padding:10px; box-shadow:0 2px 6px rgba(0,0,0,0.06);">
+          <h4 style="margin:0 0 8px 0; font-size:15px;">Classmates active today</h4>
+          <div id="classmates-content" style="min-height:36px; color:#333; font-size:14px;"></div>
+        </div>
 
         <div class="CAMERA-container">
           <div class="camera-controls">
@@ -82,18 +88,10 @@
       <div class="boto-Container">
         <a class="boto-Nav on-page" id="dashboard">Dashboard</a>
         <a class="boto-Nav" id="attendance">Attendance</a>
-        <a class="boto-NavRole" id="teachers">Teachers</a>
+        <a class="boto-Nav" id="teachers">Teachers</a>
       </div>
       <!-- Container specifically for teachers -->
-      <div class="teacher-container">
-        <div class="work-school">
-          <img src="" alt="School logo">
-          <h3 id="school-name">School name</h3>
-          <p id="school-code"></p>
-        </div>
 
-        <h3>Your <span></span></h3>
-      </div>
       <!-- Button of settings, help, and Log out -->
       <div class="boto-Container2">
 
@@ -105,7 +103,7 @@
           </svg>
         </button>
 
-        <button class="boto-Nav2" id="support">
+        <button class="boto-Nav2" id="support" disabled>
           <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
             x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
             <g>
@@ -131,7 +129,7 @@
           </svg>
         </button>
 
-        <button class="boto-Nav2 sign-out" id="logoutBtn">
+        <button class="boto-Nav2 sign-out" id="logoutBtn" style="display: none;">
           <svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M12.9999 2C10.2385 2 7.99991 4.23858 7.99991 7C7.99991 7.55228 8.44762 8 8.99991 8C9.55219 8 9.99991 7.55228 9.99991 7C9.99991 5.34315 11.3431 4 12.9999 4H16.9999C18.6568 4 19.9999 5.34315 19.9999 7V17C19.9999 18.6569 18.6568 20 16.9999 20H12.9999C11.3431 20 9.99991 18.6569 9.99991 17C9.99991 16.4477 9.55219 16 8.99991 16C8.44762 16 7.99991 16.4477 7.99991 17C7.99991 19.7614 10.2385 22 12.9999 22H16.9999C19.7613 22 21.9999 19.7614 21.9999 17V7C21.9999 4.23858 19.7613 2 16.9999 2H12.9999Z"
@@ -178,6 +176,40 @@
           </div>
         </div>
 
+        <!-- Student quick-actions & insights (visible only to students) -->
+        <div id="student-quick-card" class="student-quick"
+          style="display:none; margin-top:12px; padding:12px; border-radius:8px; background:#083c6a; color:#fff; max-width:520px;">
+          <h3 style="margin:0 0 8px 0; font-size:18px;">Study Streak & Quick Actions</h3>
+          <div style="display:flex; gap:16px; align-items:center;">
+            <div style="flex:1">
+              <div style="font-size:14px; color:#cfe9ff">Current Streak</div>
+              <div style="font-size:24px; font-weight:700" id="stu-streak">0</div>
+            </div>
+            <div style="flex:2">
+              <div style="font-size:14px; color:#cfe9ff">Last Scan</div>
+              <div id="stu-last-scan" style="font-size:14px;">—</div>
+            </div>
+            <div style="flex:1; text-align:right">
+              <button id="stu-reflect-btn"
+                style="padding:6px 10px; border-radius:6px; background:#ffd966; border:none; cursor:pointer;">Quick
+                Reflect</button>
+            </div>
+          </div>
+          <div id="stu-reflect-note"
+            style="margin-top:10px; display:none; background:#ffffff11; padding:8px; border-radius:6px; color:#fff; font-size:13px">
+          </div>
+          <div style="margin-top:10px; display:flex; align-items:center; gap:12px;">
+            <div style="flex:1">
+              <div style="font-size:12px; color:#cfe9ff;">Last 7 days</div>
+              <svg id="stu-sparkline" width="160" height="26" aria-hidden="false"></svg>
+            </div>
+            <div style="font-size:12px; color:#cfe9ff; text-align:right; min-width:120px">Legend: <span
+                style="color:#00ff00">●</span> Present <span style="color:#ff7f0e; margin-left:6px">●</span> Late <span
+                style="color:#d0ff00; margin-left:6px">●</span> Excused <span
+                style="color:#ff0000; margin-left:6px">●</span> Absent</div>
+          </div>
+        </div>
+
         <div class="user-stat-teacher">
           <h2>Attendance as of <span id="date-of-attendance"></span></h2>
           <div class="stat-content">
@@ -200,18 +232,39 @@
           </div>
         </div>
 
-        <div class="calendar-container" style="display:none; width:100%; padding:10px 16px;">
-          <div style="display:flex; gap:12px; align-items:center; margin-bottom:10px;">
-            <label for="attendance-date">Pick date:</label>
-            <input type="date" id="attendance-date" />
-            <button id="show-date-attendance">Show</button>
+        <div class="calendar-container">
+          <section class="analysis-container"
+            style="display:none;align-items: center;justify-content: center;flex-direction: column;">
+            <h3>Attendance Analysis</h3>
+            <div class="analysis-inner">
+              <div id="analysis-legend" class="analysis-legend"></div>
+              <div id="analysis-chart" class="analysis-chart" aria-hidden="false"></div>
+            </div>
+            <div style="margin:8px; display:flex; gap:8px; align-items:center">
+              <button id="analysis-export-btn" class="button-export">Export chart data</button>
+              <div id="analysis-day-breakdown" style="margin-left:8px; color:#333; font-size:14px"></div>
+            </div>
+          </section>
+          <div class="calendar-toolbar">
+            <button id="calendar-prev" title="Previous month">◀</button>
+            <div id="calendar-month-label" style="min-width:220px; text-align:center; font-weight:bold"></div>
+            <button id="calendar-next" title="Next month">▶</button>
+            <div style="flex:1"></div>
           </div>
+
+          <div class="calendar-grid" id="calendar-grid" aria-label="Month calendar" style="margin-bottom:12px;"></div>
+
           <div class="calendar-results">
             <table id="calendar-attendance-table">
+              <caption id="controller-download">
+                <button class="button-download calendar-download" id="calendar-download-btn" disabled>Download
+                  as
+                  xlsx</button>
+              </caption>
               <thead>
                 <tr>
                   <th>Name</th>
-                  <th>Username</th>
+                  <th>Section</th>
                   <th>Time In</th>
                   <th>Time Out</th>
                   <th>Status</th>
@@ -232,15 +285,18 @@
           </div>
           <table id="attendance-table">
             <caption class="caption-actual">Attendance as of <span id="date-time-attendance-table"></span></caption>
-            <caption id="controller-download"> <button class="button-download" id="download-xlsx-btn" disabled>Download
-                as xlsx</button>
+            <caption id="controller-download">
+              <button class="button-download" id="download-xlsx-btn" disabled>Download as xlsx</button>
+              <button class="button-download" id="download-image-btn" disabled style="display: none;">Download as
+                Image</button>
             </caption>
+            <div class="table-content-container"></div>
             <thead>
               <tr>
                 <th><!-- select --></th>
                 <th>Action</th>
                 <th>Name</th>
-                <th>Username</th>
+                <th>Section</th>
                 <th>Times</th>
                 <th>Status</th>
                 <th>Edit</th>
@@ -249,6 +305,34 @@
             <tbody></tbody>
           </table>
         </div>
+
+        <div class="teacher-container">
+          <div class="school-logos">
+            <div class="scrolling-logos">
+              <img src="../package/media/Caisen.png" alt="">
+              <img src="../package/media/SanJuanjpg.png" alt="">
+              <img src="../package/media/RTU.png" alt="">
+              <img src="../package/media/PUPLogo.png" alt="">
+              <img src="../package/media/occ.png" alt="">
+              <img src="../package/media/Caisen.png" alt="">
+              <img src="../package/media/SanJuanjpg.png" alt="">
+              <img src="../package/media/RTU.png" alt="">
+              <img src="../package/media/PUPLogo.png" alt="">
+              <img src="../package/media/occ.png" alt="">
+            </div>
+          </div>
+
+          <div class="teacher-message">
+            <h2>You're Unregistered</h2>
+            <p style="margin:0 0 12px 0; color:#333;">Register now to share attendance record to other teachers and admin, Contribute to monthly records, and share improvements of a student</p>
+            <div style="display:flex; gap:8px;">
+              <button id="register-now-btn" disabled>Register now</button>
+            </div>
+            <p style="color: red;padding: 10px;">Services Unavailable yet..</p>
+          </div>
+
+        </div>
+
 
 
       </div>
@@ -276,10 +360,10 @@
 
 </body>
 
-<!-- Load html5-qrcode library before `dash.js` which initializes scanning -->
+<script src="../package/Scripts/html-to-image.js"></script>
 <script src="../Nitro_core/html5-qrcode.min.js"></script>
 <!-- SheetJS for .xlsx export -->
-<script src="../package/Scripts/whatever.js"></script>
+<script src="../package/Scripts/excel-gobrtbrt-allinone.js"></script>
 <!-- Theme support (applies stored theme early) -->
 <script src="../package/Scripts/theme.js"></script>
 <script src="../package/Scripts/dash.js"></script>

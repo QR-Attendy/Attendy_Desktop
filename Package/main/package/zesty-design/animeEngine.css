@@ -50,3 +50,13 @@
   }
 
 }
+
+@keyframes scroll-logos {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-20%);
+  }
+}
