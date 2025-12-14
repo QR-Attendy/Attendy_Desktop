@@ -18,5 +18,5 @@
 - using Frameworks (Tailwind css & Alpine.js)
 
 
-### Extra:
+### Extra: from acebld
 Please do not send hate towards me thru my email, it's my first project and an app to get started as a junior Web Developer and having basic skills on my current Tech Stack.. I'm low-key trying to be better
