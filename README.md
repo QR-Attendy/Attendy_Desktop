@@ -13,7 +13,6 @@
 - API/backend components for attendance and QR management.
 
 ### Upcoming features:
-- Transitioning from Electron to tauri (v0.1.0-T1)
 - use of Rust Programming Language
 - using Frameworks (Tailwind css & Alpine.js)
 
