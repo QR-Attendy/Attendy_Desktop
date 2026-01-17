@@ -1,22 +1,34 @@
-import { app, BrowserWindow, ipcMain } from "electron";
-import path from "path";
-import { fileURLToPath } from "url";
-import { spawn } from "child_process";
-import Store from "electron-store";
-import { execFile } from "child_process";
+import { app, BrowserWindow, ipcMain } from "electron"; //Electron Modules
+import path from "path"; //Node.js Path Module
+import { fileURLToPath } from "url"; //Node.js URL Module
+import { spawn } from "child_process"; //Node.js Child Process Module
+import Store from "electron-store"; //Electron Store Module
+import { execFile } from "child_process"; //Node.js Exec File Module
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const isDev = !app.isPackaged;
 const store = new Store();
 
+// ==========//
+// === USED IN DEVOLOPEMENT no need to use this code here ===//
+/* It's only soul purpose is to automatically refresh the page instead of the app 
+* uncomment the code below and the import statement at the top of the file
+* to use it during development IF YOU ARE CONTRIBUTING TO THE PROJECT
+*/
+import { watchRenderer } from './watcher.js';
+watchRenderer([
+  path.join(__dirname, '../main/dash.html'),
+  path.join(__dirname, '../main/zesty-design/dashboard.css'),
+  path.join(__dirname, '../main/zesty-design/source.css'),
+]);
+// ==========//
+
 let PyAttendy;
 
 let startedWin;
 let dashboardWin;
-let settingsWin;
-let supportWin;
-
 // -------------------------------------
 // Backend Launchers
 // -------------------------------------
@@ -113,9 +125,8 @@ function dashboardWindow() {
 // -------------------------------------
 // APP BOOT
 // -------------------------------------
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   AttendyEngine();
-
   const currentUser = store.get("currentUser");
   currentUser ? dashboardWindow() : startedWindow();
 });
@@ -141,22 +152,6 @@ ipcMain.handle("logout", () => {
 ipcMain.on("open-dashboard", () => {
   if (startedWin) startedWin.close();
   dashboardWindow();
-});
-
-ipcMain.on("setting", () => {
-  settingWindow()
-  if (settingsWin) {
-    settingsWin.focus();
-    return;
-  }
-});
-
-ipcMain.on("support", () => {
-  supportWindow()
-  if (supportWin) {
-    supportWin.focus();
-    return;
-  }
 });
 
 // -------------------------------------

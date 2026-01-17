@@ -1,15 +1,11 @@
 /*
 QR Attendy base on Website and WebApp lol
 Develop by BELDAD-Ace on Github with the team group 1 for PR2
-aka Jhon Benedict Belad
+aka Jhon Benedict Belad 
 
 all rights reserved 2025
 
 */
-/* body {
-  display: flex;
-  align-items: center;
-} */
 main {
   z-index: 2;
   display: grid;
@@ -1073,11 +1069,9 @@ tbody tr:last-child td:last-child {
       padding: 20px;
       height: 80px;
       border-radius: 20px;
-      box-shadow: -7px 7px 8px rgba(0, 0, 0, 0.1);
 
       &:hover {
         margin-bottom: 3px;
-        box-shadow: -7px 7px 8px rgba(0, 0, 0, 0.383);
       }
 
       P {

@@ -88,7 +88,6 @@ all rights reserved 2025
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: white;
   overflow: hidden;
 }
 
@@ -101,6 +100,29 @@ main {
   right: 0;
 }
 
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track-clr);
+  border-radius: 20px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  transition: 350ms ease-in-out;
+  border-radius: 20px;
+  background: var(--scrollbar-thumb-clr);
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover-clr);
+}
+
+
 :root {
   /* main */
   --bg-main-body-clr: #efefef;
@@ -110,6 +132,11 @@ main {
   /* specifically for containers lolz */
   --shadow-clr: rgba(0, 0, 0, 0.2);
   --shadow-inverse-clr: rgba(255, 255, 255, 0.2);
+  --shadow-label-clr: rgba(0, 0, 0, 0.1);
+  --shadow-label-hover-clr: rgba(0, 0, 0, 0.383);
+  --scrollbar-track-clr: #494949;
+  --scrollbar-thumb-clr: #7c7c7c;
+  --scrollbar-thumb-hover-clr: #adadad;
   /* sidebar */
   --sidebar-txt-clr: #000000;
   --sidebar-txt-inverse-clr: #ffffff;
@@ -152,13 +179,67 @@ main {
   --listStudentCalendar-txt-hover-clr: #79ff84;
 }
 
+.dark-theme {
+  /* Dark theme variable overrides */
+  --bg-main-body-clr: #0f0f0f;
+  /* dark navy */
+  --bg-sidebar-clr: linear-gradient(162deg, #006f7e -1%, #00102f 15%);
+
+  --shadow-clr: hsla(0, 0%, 100%, 0.3);
+  --shadow-inverse-clr: rgba(255, 255, 255, 0.03);
+  --shadow-label-clr: rgba(255, 255, 255, 0.1);
+  --shadow-label-hover-clr: rgba(255, 255, 255, 0.383);
+
+  --sidebar-txt-clr: #dbe7ef;
+  --sidebar-txt-inverse-clr: #0b1220;
+  --sidebar-svg-clr: #c7d2de;
+  --sidebar-active-clr: #bfbfbf1b;
+  --sidebar-hover-clr: #ffffff38;
+
+  --QRimage-border-bg-clr: #ffffff;
+  --QRbutton-bg-clr: #242a2f;
+  --Qrbutton-hover-bg-clr: #34393f;
+
+  /* Table (Universal) */
+  --tableTr-bg-clr: #202121;
+  --tableTboy-bg-clr: #0a0a0a;
+
+  /* dashboard */
+  --dash-txt-clr: #e6eef6;
+  --dash-inverse-txt-clr: #0b1220;
+  --dash-svg-clr: #d9e6f2;
+  --dash-pfCard-bg-clr: #222222;
+  --dashContainer-bg-clr: #1b1b1b;
+  --dashStat-numberin-bg-clr: #0f0f0f;
+
+  /* Attendance  */
+  --options-bg-clr: #121418;
+  --addStudent-btn-bg-clr: #2a2f33;
+  --addStudent-btn-hover-bg-clr: #3b4045;
+
+  --outSetter-bg-clr: #131617;
+
+  /* Calendar */
+  --dayCell-bg-clr: #071018;
+  --dayCell-outline-clr: #2563eb;
+  /* blue accent */
+  --dayCell-selected-bg-clr: linear-gradient(180deg, #07203a, #061827);
+
+  --listStudentCalendar-option-bg-clr: #0d1114;
+  --listStudentCalendar-btn-clr: #0f1316;
+  --listStudentCalendar-btn-border-clr: #1f2326;
+  --listStudentCalendar-btn-hover-clr: #273034;
+  --listStudentCalendar-txt-hover-clr: #8be79d;
+}
+
 /* =========================================================== */
 /* BASED THEME (White theme mode) */
 /* =========================================================== */
 
 main,
 body {
-  background-color: #efefef;
+  transition: 350ms ease-in-out;
+  background-color: var(--bg-main-body-clr);
 }
 
 #side-bar {
@@ -173,7 +254,15 @@ body {
     fill: var(--sidebar-svg-clr);
   }
 
+  button {
+    color: var(--dash-txt-clr);
+  }
+
   li {
+    span {
+      color: var(--dash-txt-clr);
+    }
+
     a {
       color: var(--sidebar-txt-clr);
     }
@@ -193,6 +282,8 @@ body {
     }
 
     .QR-container {
+      color: var(--dash-txt-clr);
+
       .qr-image-container {
         border: 2px solid var(--QRimage-border-bg-clr);
         box-shadow: -10px 0px 15px var(--shadow-clr);
@@ -217,7 +308,7 @@ body {
 /* Table (Universal) */
 
 table {
-  box-shadow: -7px 4px 19px var(--shadow-clr);
+  color: var(--dash-txt-clr);
 
   tr {
     background-color: var(--tableTr-bg-clr);
@@ -255,15 +346,22 @@ table {
 .dashboard-container {
   .stat-dash-container {
     background-color: var(--dashContainer-bg-clr);
+    color: var(--dash-txt-clr);
 
     .numbering {
       background-color: var(--dashStat-numberin-bg-clr);
+
+      svg {
+        fill: var(--dash-svg-clr);
+      }
     }
   }
 
   .tableOf-Students,
   .tableOf-mostPresent {
+    color: var(--dash-txt-clr);
     background-color: var(--dashContainer-bg-clr);
+    box-shadow: -7px 4px 19px var(--shadow-clr);
   }
 
 }
@@ -271,15 +369,14 @@ table {
 /* Attendance Table Container */
 .attendance-table-container {
   background-color: var(--dashContainer-bg-clr);
-  box-shadow: -7px 4px 19px var(--shadow-clr);
 
   .options {
     background-color: var(--options-bg-clr);
-    box-shadow: -7px 4px 19px var(--shadow-inverse-clr);
 
     #add-student {
+
       background-color: var(--addStudent-btn-bg-clr);
-      color: var(--dash-inverse-txt-clr);
+      color: var(--dash-txt-clr);
       border: 0.5px solid;
 
       &:hover {
@@ -288,6 +385,7 @@ table {
     }
 
     .out-setter {
+      color: var(--dash-txt-clr);
       background-color: var(--outSetter-bg-clr);
       box-shadow: -7px 4px 19px var(--shadow-inverse-clr);
 
@@ -338,14 +436,31 @@ table {
 
         svg {
           color: var(--listStudentCalendar-txt-hover-clr);
+
           path {
-          fill: var(--listStudentCalendar-txt-hover-clr);
-          stroke: var(--listStudentCalendar-txt-hover-clr);
+            fill: var(--listStudentCalendar-txt-hover-clr);
+            stroke: var(--listStudentCalendar-txt-hover-clr);
           }
         }
-        
+
       }
     }
+  }
+}
+
+/* Settings Container */
+.settings-container {
+  color: var(--dash-txt-clr);
+
+  .miscellaneous-container {
+    label {
+      box-shadow: -7px 7px 8px var(--shadow-label-clr);
+
+      &:hover {
+        box-shadow: -7px 7px 8px var(--shadow-label-hover-clr);
+      }
+    }
+
   }
 }
 

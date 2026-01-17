@@ -9,7 +9,7 @@
   "main": "source/snapdragon.js",
   "scripts": {
     "start": "electron .",
-    "watch": "cross-env NODE_ENV=developmen nodemon --exec electron .",
+    "watch": "cross-env NODE_ENV=development electron .",
     "build": "electron-builder"
   },
   "build": {
@@ -29,19 +29,16 @@
       "installerIcon": "main/package/media/icon-LOGO.ico",
       "uninstallerIcon": "main/package/media/icon-LOGO.ico",
       "uninstallDisplayName": "Nuclear Bomb",
-      "license": "LICENSE.txt"
+      "license": "LICENSE"
     }
   },
   "dependencies": {
-    "better-sqlite3": "^12.5.0",
-    "electron-store": "^11.0.2",
-    "html5-qrcode": "^2.3.8"
+    "better-sqlite3": "^12.6.2",
+    "electron-store": "^11.0.2"
   },
   "devDependencies": {
+    "chokidar": "^5.0.0",
     "cross-env": "^10.1.0",
-    "electron": "^39.2.4",
-    "electron-reload": "^2.0.0-alpha.1",
-    "electron-builder": "^26.0.12",
-    "nodemon": "^3.1.11"
+    "electron": "^40.0.0"
   }
 }
