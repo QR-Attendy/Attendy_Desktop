@@ -183,7 +183,7 @@ main {
   /* Dark theme variable overrides */
   --bg-main-body-clr: #0f0f0f;
   /* dark navy */
-  --bg-sidebar-clr: linear-gradient(162deg, #006f7e -1%, #00102f 15%);
+  --bg-sidebar-clr: linear-gradient(162deg, #006f7e -1%, #000716 15%);
 
   --shadow-clr: hsla(0, 0%, 100%, 0.3);
   --shadow-inverse-clr: rgba(255, 255, 255, 0.03);
@@ -220,10 +220,10 @@ main {
   --outSetter-bg-clr: #131617;
 
   /* Calendar */
-  --dayCell-bg-clr: #071018;
-  --dayCell-outline-clr: #2563eb;
+  --dayCell-bg-clr: #4f4f50;
+  --dayCell-outline-clr: #ffffff;
   /* blue accent */
-  --dayCell-selected-bg-clr: linear-gradient(180deg, #07203a, #061827);
+  --dayCell-selected-bg-clr: linear-gradient(180deg, #494949, #2c2c2c);
 
   --listStudentCalendar-option-bg-clr: #0d1114;
   --listStudentCalendar-btn-clr: #0f1316;
@@ -415,34 +415,35 @@ table {
 }
 
 .calendar-X-stat-container {
+  color: var(--dash-txt-clr);
   box-shadow: -7px 4px 19px var(--shadow-clr);
   background-color: var(--dashContainer-bg-clr);
 }
 
 .list-student-calendar-container {
+  color: var(--dash-txt-clr);
   box-shadow: -7px 4px 19px var(--shadow-clr);
   background-color: var(--dashContainer-bg-clr);
 
   .option-caption {
     background-color: var(--listStudentCalendar-option-bg-clr);
 
-    button {
+    .as-excel {
+      color: var(--dash-txt-clr);
       background-color: var(--listStudentCalendar-btn-clr);
       border: 1px solid var(--listStudentCalendar-btn-border-clr);
+
+      svg {
+        fill: var(--dash-svg-clr);
+
+        &:hover {
+          fill: var(--listStudentCalendar-txt-hover-clr);
+        }
+      }
 
       &:hover {
         background-color: var(--listStudentCalendar-btn-hover-clr);
         color: var(--listStudentCalendar-txt-hover-clr);
-
-        svg {
-          color: var(--listStudentCalendar-txt-hover-clr);
-
-          path {
-            fill: var(--listStudentCalendar-txt-hover-clr);
-            stroke: var(--listStudentCalendar-txt-hover-clr);
-          }
-        }
-
       }
     }
   }

@@ -28,7 +28,7 @@
     <nav id="side-bar">
       <ul>
         <li>
-          <span class="logo"><img src="../main/media/icons/LOGO-T.png" alt="LOGO">QR Attendy</span>
+          <span class="logo"><img src="../main/media/icons/LOGO-T.png" alt="LOGO">Attendy</span>
           <button onclick=toggleSidebar() id="toggle-btn">
             <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed">
               <path
@@ -272,47 +272,48 @@
         <div class="attendance-table-container">
           <div class="options">
             <button id="add-student">add Student</button>
-
-            <div class="out-setter">
-              <div>
-                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="select-all-rows">
-                  Select All</label>
-                <label style="margin-left:8px">Set Time Out:</label>
-                <input type="time" id="timeout-time" />
-              </div>
-              <button id="apply-timeout-btn">Apply Time Out</button>
-            </div>
+            <form action="" class="search-container">
+              <input type="search" name="search-student" id="" class="search-input" placeholder="Search for student..">
+              <button id="search-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                  fill="#000000">
+                  <path
+                    d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z" />
+                </svg>
+              </button>
+            </form>
           </div>
 
           <table>
             <caption class="caption-actual">Attendance as of <span id="date-time-attendance-table"></span></caption>
             <caption class="caption-download">
               <div class="option-caption">
+
                 <button id="download-sheet" class="as-excel">
-                  <svg width="24px" height="24px" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg" fill="none">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                    fill="#000000">
                     <path
-                      d="M56 30c0-1.662 1.338-3 3-3h108c1.662 0 3 1.338 3 3v132c0 1.662-1.338 3-3 3H59c-1.662 0-3-1.338-3-3v-32m0-68V30"
-                      style="fill-opacity:.402658;stroke:#000000;stroke-width:12;stroke-linecap:round;paint-order:stroke fill markers" />
-                    <rect width="68" height="68" x="-58.1" y="40.3" rx="3"
-                      style="fill:none;fill-opacity:.402658;stroke:#000000;stroke-width:12;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
-                      transform="translate(80.1 21.7)" />
-                    <path
-                      d="M138.79 164.725V27.175M56.175 58.792H170M170 96H90.328M169 133.21H56.175M44.5 82l23 28m0-28-23 28"
-                      style="fill:none;stroke:#000000;stroke-width:12;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1" />
+                      d="M120-120v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Z" />
                   </svg>
                   Download
                 </button>
-                <form action="" class="search-container">
-                  <input type="search" name="search-student" id="" class="search-input"
-                    placeholder="Search for student..">
-                  <button id="search-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
-                      fill="#000000">
-                      <path
-                        d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z" />
-                    </svg>
-                  </button>
-                </form>
+
+                <button id="delete">
+
+                  Delete
+                </button>
+
+                <div class="out-setter">
+                  <div>
+                    <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox"
+                        id="select-all-rows">
+                      Select All</label>
+                    <label style="margin-left:8px">Set Time Out:</label>
+                    <input type="time" id="timeout-time" />
+                  </div>
+                  <button id="apply-timeout-btn">Apply Time Out</button>
+                </div>
+
               </div>
             </caption>
             <thead>
@@ -433,16 +434,10 @@
             <caption class="caption-download">
               <div class="option-caption">
                 <button id="download-sheet-specDate" class="as-excel">
-                  <svg width="24px" height="24px" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg" fill="none">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                    fill="#000000">
                     <path
-                      d="M56 30c0-1.662 1.338-3 3-3h108c1.662 0 3 1.338 3 3v132c0 1.662-1.338 3-3 3H59c-1.662 0-3-1.338-3-3v-32m0-68V30"
-                      style="fill-opacity:.402658;stroke:#000000;stroke-width:12;stroke-linecap:round;paint-order:stroke fill markers" />
-                    <rect width="68" height="68" x="-58.1" y="40.3" rx="3"
-                      style="fill:none;fill-opacity:.402658;stroke:#000000;stroke-width:12;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
-                      transform="translate(80.1 21.7)" />
-                    <path
-                      d="M138.79 164.725V27.175M56.175 58.792H170M170 96H90.328M169 133.21H56.175M44.5 82l23 28m0-28-23 28"
-                      style="fill:none;stroke:#000000;stroke-width:12;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1" />
+                      d="M120-120v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Z" />
                   </svg>
                   Download
                 </button>
@@ -575,9 +570,10 @@
   </div>
 
   <!-- Qr Scanner Container -->
-  <div class="camera-activation-container">
+  <div class="camera-activation-container activate">
     <div class="absolute-camera-container">
       <button id="close-USER">✕</button>
+
       <div class="the-camera">
         <div class="camera-controls">
           <label for="camera-select">Camera:</label>
@@ -620,7 +616,6 @@
 <script src="../main/Scripts/dashboard/graph.js"></script>
 <script src="../main/Scripts/dashboard/calendar.js"></script>
 <script src="../source/render.js"></script>
-<script src="../main/Scripts/data.js"></script>
 
 <script>
 </script>

@@ -1,4 +1,5 @@
-//This file will expose 99% of the unforgiven sins we might commit in the renderer process
+// I forgot to give credit to my Big cousin Spades for uhh Whatever he slap in this code..
+// but yea thanks Big Cousin Spades for the help :D
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
