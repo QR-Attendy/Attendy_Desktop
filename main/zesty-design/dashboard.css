@@ -253,6 +253,9 @@ li:hover {
     .qr-image-container {
       overflow: hidden;
       border-radius: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
 
       img {
         width: 200px;
