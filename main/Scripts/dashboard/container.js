@@ -82,3 +82,10 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', navToSettings);
   });
 });
+
+// Notification panel toggle
+const ntfPanel = document.getElementById('ntf-panel');
+function toggleNtfPanel() {
+  if (ntfPanel) ntfPanel.classList.toggle('show');
+}
+
