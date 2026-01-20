@@ -1,15 +1,16 @@
-# QR Attendy on Electron 
-**QR Attendy on Electron** is an early stage of QR Attendy 
+# Attendy on Electron 
+**Attendy on Electron** Is an Web app that let you record attendance via QR Code without a hastle by reducing the use of traditional way of recoding Student's attendance  
 
 ---
 
 ## Status
 
-**Alpha** — prototype / packaged alpha builds (see tags). Formal GitHub “Releases” entries have not been created; source-level tags exist for early alpha versions.
-
+**Alpha** - Undergoing tests and modification under the Research from group 1 3i's 
 ## Key features
 
-- Electron-based desktop client (packaged alpha available).
-- API/backend components for attendance and QR management.
+- Electron-based desktop web app made purely on vanilla JavaScript.
+- Attendance Records saved in the local storage
+- Downloadable Attendance Record on time
+- etc.
 
 
