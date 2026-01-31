@@ -1,9 +1,10 @@
-import { app, BrowserWindow, ipcMain } from "electron"; //Electron Modules
+import { app, BrowserWindow, ipcMain, Menu, globalShortcut } from "electron"; //Electron Modules
 import path from "path"; //Node.js Path Module
 import { fileURLToPath } from "url"; //Node.js URL Module
 import { spawn } from "child_process"; //Node.js Child Process Module
 import Store from "electron-store"; //Electron Store Module
 import { execFile } from "child_process"; //Node.js Exec File Module
+import http from "http";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -11,13 +12,7 @@ const __dirname = path.dirname(__filename);
 const isDev = !app.isPackaged;
 const store = new Store();
 
-// ==========//
-// === USED IN DEVOLOPEMENT no need to use this code here ===//
-/* It's only soul purpose is to automatically refresh the page instead of the app 
-* uncomment the code below and the import statement at the top of the file
-* to use it during development IF YOU ARE CONTRIBUTING TO THE PROJECT
-*/
-
+// no error will occur during production as chokidar will be disabled
 import { watchRenderer } from './watcher.js';
 watchRenderer([
   path.join(__dirname, '../main/dash.html'),
@@ -25,34 +20,52 @@ watchRenderer([
   path.join(__dirname, '../main/zesty-design/source.css'),
 ]);
 
-// ==========//
-
 let PyAttendy;
-
 let startedWin;
 let dashboardWin;
-// -------------------------------------
-// Backend Launchers
-// -------------------------------------
-function AttendyEngine() {
-  if (isDev) {
-    // during development — spawn the Python script directly
-    PyAttendy = spawn('python', [path.join(__dirname, '../main/pyAttendy/attendy_engine.py')]);
-  } else {
-    // in production / packaged mode — run bundled Python executable
-    const exePath = path.join(process.resourcesPath, 'atom', 'attendy_engine.exe');
-    PyAttendy = execFile(exePath);
-  }
 
-  PyAttendy.stdout.on("data", data =>
-    console.log("Python log -", data.toString())
-  );
 
-  PyAttendy.stderr.on("data", data =>
-    console.error("Python log -", data.toString())
-  );
+// Replace AttendyEngine with a starter that returns when backend ready
+function startBackend({ timeoutMs = 15000, intervalMs = 300 } = {}) {
+  return new Promise((resolve, reject) => {
+    // spawn process (dev vs production)
+    if (isDev) {
+      PyAttendy = spawn('python', [path.join(__dirname, '../main/pyAttendy/attendy_engine.py')], { stdio: ['ignore', 'pipe', 'pipe'] });
+    } else {
+      const exePath = path.join(process.resourcesPath, 'atom', 'attendy_engine.exe');
+      PyAttendy = execFile(exePath, { windowsHide: true });
+    }
 
-  console.log("Flask Attendy Edition backend started!!");
+    if (!PyAttendy) return reject(new Error('failed to start backend process'));
+
+    PyAttendy.stdout && PyAttendy.stdout.on("data", d => console.log("Python log -", d.toString()));
+    PyAttendy.stderr && PyAttendy.stderr.on("data", d => console.error("Python log -", d.toString()));
+
+    const start = Date.now();
+
+    const check = () => {
+      const req = http.get({ hostname: '127.0.0.1', port: 5005, path: '/health', timeout: 2000 }, res => {
+        let body = '';
+        res.on('data', c => body += c.toString());
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(body || '{}');
+            if (res.statusCode === 200 && json && json.ready) return resolve();
+          } catch (e) { /* ignore */ }
+          if (Date.now() - start > timeoutMs) return reject(new Error('backend health check timed out'));
+          setTimeout(check, intervalMs);
+        });
+      });
+      req.on('error', () => {
+        if (Date.now() - start > timeoutMs) return reject(new Error('backend health check timed out'));
+        setTimeout(check, intervalMs);
+      });
+      req.on('timeout', () => req.destroy());
+    };
+
+    // start polling
+    setTimeout(check, 100);
+  });
 }
 
 // -------------------------------------
@@ -94,6 +107,24 @@ function startedWindow() {
     startedWin.show();
   });
 
+  // In packaged builds, block refresh/devtools keyboard shortcuts
+  if (!isDev && startedWin && startedWin.webContents) {
+    startedWin.webContents.on('before-input-event', (event, input) => {
+      try {
+        const key = (input.key || '').toLowerCase();
+        const isCtrl = !!(input.control || input.meta);
+        const isShift = !!input.shift;
+        // block Ctrl+R, Ctrl+Shift+R, Ctrl+Shift+I and F12
+        if ((isCtrl && key === 'r') || (isCtrl && isShift && key === 'r') || (isCtrl && isShift && key === 'i') || input.code === 'F12') {
+          event.preventDefault();
+        }
+      } catch (e) { /* ignore */ }
+    });
+    startedWin.webContents.on('devtools-opened', () => {
+      try { startedWin.webContents.closeDevTools(); } catch (e) { /* ignore */ }
+    });
+  }
+
   startedWin.on("closed", () => {
     startedWin = null;
   });
@@ -119,6 +150,22 @@ function dashboardWindow() {
   dashboardWin.once('ready-to-show', () => {
     dashboardWin.show();
   });
+  // In packaged builds, block refresh/devtools keyboard shortcuts
+  if (!isDev && dashboardWin && dashboardWin.webContents) {
+    dashboardWin.webContents.on('before-input-event', (event, input) => {
+      try {
+        const key = (input.key || '').toLowerCase();
+        const isCtrl = !!(input.control || input.meta);
+        const isShift = !!input.shift;
+        if ((isCtrl && key === 'r') || (isCtrl && isShift && key === 'r') || (isCtrl && isShift && key === 'i') || input.code === 'F12') {
+          event.preventDefault();
+        }
+      } catch (e) { /* ignore */ }
+    });
+    dashboardWin.webContents.on('devtools-opened', () => {
+      try { dashboardWin.webContents.closeDevTools(); } catch (e) { /* ignore */ }
+    });
+  }
   dashboardWin.on("closed", () => {
     dashboardWin = null;
   });
@@ -128,9 +175,32 @@ function dashboardWindow() {
 // APP BOOT
 // -------------------------------------
 app.whenReady().then(async () => {
-  AttendyEngine();
-  const currentUser = store.get("currentUser");
-  currentUser ? dashboardWindow() : startedWindow();
+  try {
+    await startBackend();
+    const currentUser = store.get("currentUser");
+    // Remove application menu in packaged builds to avoid built-in reload/devtools menu items
+    if (!isDev) {
+      try { Menu.setApplicationMenu(null); } catch (e) { /* ignore */ }
+      // Register global shortcuts in production to further prevent reload/devtools
+      try {
+        // common reload keys
+        globalShortcut.register('CommandOrControl+R', () => { });
+        globalShortcut.register('CommandOrControl+Shift+R', () => { });
+        // devtools
+        globalShortcut.register('CommandOrControl+Shift+I', () => { });
+        globalShortcut.register('F12', () => { });
+      } catch (e) { /* ignore */ }
+    }
+    currentUser ? dashboardWindow() : startedWindow();
+    console.log("Backend started successfully.");
+  } catch (err) {
+    console.error("Failed to start backend:", err);
+    // ensure process is killed and quit gracefully
+    if (PyAttendy) {
+      try { PyAttendy.kill(); } catch (e) { }
+    }
+    app.quit();
+  }
 });
 
 // -------------------------------------
@@ -160,5 +230,13 @@ ipcMain.on("open-dashboard", () => {
 // Cleanup on quit
 // -------------------------------------
 app.on("before-quit", () => {
-  if (PyAttendy) PyAttendy.kill();
+  if (PyAttendy) {
+    try {
+      PyAttendy.kill();
+    } catch (e) {
+      console.error("Failed to kill backend process:", e);
+    }
+  }
+  // unregister global shortcuts when quitting
+  try { globalShortcut.unregisterAll(); } catch (e) { /* ignore */ }
 });

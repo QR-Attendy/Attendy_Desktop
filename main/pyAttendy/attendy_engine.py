@@ -9,8 +9,10 @@ import os
 import traceback
 import logging
 from datetime import datetime
+import multiprocessing
 
 # NOTE: INSTALL A GODDAMN WAITRESS you Restless skibidi coder (message from Spades)
+# NOTE" next update lol
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -427,10 +429,26 @@ def edit_attendance():
 # `/delete_attendance_row`, and `/delete_user`.
 
 
+# Health endpoint for readiness checks
+@app.route("/health", methods=["GET"])
+def health():
+    try:
+        # simple DB check to ensure server can access DB
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("SELECT 1")
+        conn.close()
+        return jsonify({"status": "ok", "ready": True})
+    except Exception as e:
+        return jsonify({"status": "error", "ready": False, "details": str(e)}), 500
 
 # ---------------------------------
 # Run Server
 # ---------------------------------
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5005)
-    
+    # Required for PyInstaller on Windows to avoid multiprocessing issues
+    multiprocessing.freeze_support()
+
+    # Enforce production config
+    app.config.update(DEBUG=False)
+    # Run only on localhost, fixed port, no debug, no reloader
+    app.run(host="127.0.0.1", port=5005, debug=False, use_reloader=False)

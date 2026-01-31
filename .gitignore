@@ -1,3 +1,7 @@
 # Totally everything inside of Node_modules (we probably update this)
 node_modules/
 main/pyAttendy/*.db
+main/pyAttendy/dist
+main/pyAttendy/*.spec
+main/pyAttendy/build
+dist

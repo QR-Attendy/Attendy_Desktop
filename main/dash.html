@@ -288,21 +288,20 @@
           <table>
             <caption class="caption-actual">Attendance as of <span id="date-time-attendance-table"></span></caption>
             <caption class="options2">
-                <div class="out-setter">
+              <div class="out-setter">
 
-                  <div>
-                    <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox"
-                        id="select-all-rows">
-                      Select All</label>
-                    <label style="margin-left:8px">Set Time Out:</label>
-                    <input type="time" id="timeout-time" />
-                  </div>
-
-                  <button id="delete">Delete</button>
-                  <button id="apply-timeout-btn">Apply Time Out</button>
-
+                <div>
+                  <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="select-all-rows">
+                    Select All</label>
+                  <label style="margin-left:8px">Set Time Out:</label>
+                  <input type="time" id="timeout-time" />
                 </div>
-                </caption>
+
+                <button id="delete">Delete</button>
+                <button id="apply-timeout-btn">Apply Time Out</button>
+
+              </div>
+            </caption>
             </caption>
             <thead>
               <tr>
@@ -655,6 +654,16 @@
 
         <label for="edit-student-time-out">Time Out</label>
         <input type="time" id="edit-student-time-out" name="edit-student-time-out">
+
+        <label for="edit-student-status">Status:</label>
+        <div class="select-container">
+          <select id="edit-student-status" name="edit-student-status" class="select-box-status">
+            <option value="Present">Present</option>
+            <option value="Late">Late</option>
+            <option value="Absent">Absent</option>
+            <option value="Excused">Excused</option>
+          </select>
+        </div>
 
         <label for="edit-student-section">Section:</label>
         <div class="select-container">

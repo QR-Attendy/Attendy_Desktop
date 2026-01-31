@@ -21,16 +21,23 @@
           "arch": "x64"
         }
       ],
-      "icon": "main/package/media/QR_attendy/icon-LOGO.ico"
+      "icon": "main/media/icons/LOGO-ico.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "main/package/media/icon-LOGO.ico",
-      "uninstallerIcon": "main/package/media/icon-LOGO.ico",
+      "deleteAppDataOnUninstall": true,
+      "installerIcon": "main/media/icons/LOGO-ico.ico",
+      "uninstallerIcon": "main/media/icons/LOGO-ico.ico",
       "uninstallDisplayName": "Nuclear Bomb",
       "license": "LICENSE"
-    }
+    },
+    "extraResources": [
+      {
+        "from": "main/pyAttendy/dist/attendy_engine.exe",
+        "to": "atom/attendy_engine.exe"
+      }
+    ]
   },
   "dependencies": {
     "better-sqlite3": "^12.6.2",
@@ -39,6 +46,7 @@
   "devDependencies": {
     "chokidar": "^5.0.0",
     "cross-env": "^10.1.0",
-    "electron": "^40.0.0"
+    "electron": "^40.0.0",
+    "electron-builder": "^26.4.0"
   }
 }

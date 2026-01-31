@@ -375,7 +375,8 @@ table {
   .options {
     background-color: var(--options-bg-clr);
 
-    #add-student,#importORexport {
+    #add-student,
+    #importORexport {
 
       background-color: var(--addStudent-btn-bg-clr);
       color: var(--dash-txt-secondary-clr);
@@ -455,7 +456,8 @@ table {
 .settings-container {
   color: var(--dash-txt-clr);
 
-  .Customization-container, .Accesibility-container {
+  .Customization-container,
+  .Accesibility-container {
     label {
       box-shadow: -7px 7px 8px var(--shadow-label-clr);
 
@@ -464,6 +466,17 @@ table {
       }
     }
 
+  }
+}
+
+.notification-panel {
+  background-color: var(--dashContainer-bg-clr);
+  color: var(--dash-txt-clr);
+
+  .notifcation-item {
+    &:hover {
+      background-color: var(--sidebar-hover-clr);
+    }
   }
 }
 

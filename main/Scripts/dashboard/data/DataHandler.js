@@ -268,8 +268,12 @@
     if (selectAll) {
       selectAll.addEventListener('change', (e) => {
         const checked = !!selectAll.checked;
-        const boxes = document.querySelectorAll('#attendance-tbody .row-select');
-        boxes.forEach(b => { b.checked = checked; });
+        const boxes = Array.from(document.querySelectorAll('#attendance-tbody .row-select'));
+        boxes.forEach(b => {
+          try { b.checked = checked; } catch (e) { /* ignore */ }
+          // dispatch change so delegated handlers update visual highlight
+          try { b.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) { /* ignore */ }
+        });
       });
     }
 
@@ -287,7 +291,14 @@
           base = ids.length ? `attendance-selected-${ts}` : `attendance-all-${ts}`;
         }
         const filename = base.toLowerCase().endsWith('.xlsx') ? base : `${base}.xlsx`;
-        await downloadAsXlsx(data, filename);
+        try {
+          try { showNotice('Download started', 'Preparing your download...'); } catch (e) { /* ignore */ }
+          await downloadAsXlsx(data, filename);
+          try { showNotice('Download complete', `Saved ${filename}`); } catch (e) { /* ignore */ }
+        } catch (e) {
+          console.error('download failed', e);
+          try { showNotice('Download failed', 'An error occurred while preparing the file'); } catch (ee) { /* ignore */ }
+        }
       });
     }
 
@@ -330,7 +341,14 @@
           filename = base;
         }
         filename = filename.toLowerCase().endsWith('.xlsx') ? filename : `${filename}.xlsx`;
-        await downloadAsXlsx(data, filename);
+        try {
+          try { showNotice('Download started', 'Preparing your download...'); } catch (e) { /* ignore */ }
+          await downloadAsXlsx(data, filename);
+          try { showNotice('Download complete', `Saved ${filename}`); } catch (e) { /* ignore */ }
+        } catch (e) {
+          console.error('download spec failed', e);
+          try { showNotice('Download failed', 'An error occurred while preparing the file'); } catch (ee) { /* ignore */ }
+        }
       });
     }
 
@@ -582,6 +600,16 @@
     if (tbodyEl) {
       const mo = new MutationObserver(() => updateDownloadState());
       mo.observe(tbodyEl, { childList: true, subtree: false });
+      // keep select-all checkbox in sync when individual boxes change
+      tbodyEl.addEventListener('change', (ev) => {
+        try {
+          const cb = ev.target && (ev.target.classList && ev.target.classList.contains('row-select')) ? ev.target : (ev.target.closest && ev.target.closest('.row-select'));
+          if (!cb) return;
+          const boxes = Array.from(document.querySelectorAll('#attendance-tbody .row-select'));
+          const allChecked = boxes.length > 0 && boxes.every(b => b.checked);
+          if (selectAll) selectAll.checked = allChecked;
+        } catch (e) { /* ignore */ }
+      });
     }
     // initial state
     updateDownloadState();
@@ -819,11 +847,43 @@
           if (mOut) tOut = mOut[1].replace(/\s+/g, '');
         }
         const username = (tr.dataset && tr.dataset.username) || '';
-        const section = (tr.dataset && tr.dataset.section) || (tr.querySelector('.section-cell') && tr.querySelector('.section-cell').textContent.trim()) || '';
+        // section: support calendar rows which don't have .section-cell or data-section
+        let section = '';
+        try {
+          if (tr.dataset && tr.dataset.section) section = String(tr.dataset.section).trim();
+          else if (tr.querySelector('.section-cell')) section = String(tr.querySelector('.section-cell').textContent || '').trim();
+          else if (tr.children && tr.children[1] && tr.children[1].textContent) section = String(tr.children[1].textContent).trim();
+          else section = '';
+        } catch (e) { section = '' }
+        // status: prefer .status-select, then .status-text, then calendar column fallback (td index 2)
+        let rowStatus = '';
+        try {
+          const stEl = tr.querySelector('.status-select');
+          if (stEl) rowStatus = String(stEl.value || '').trim();
+          else if (tr.querySelector('.status-text')) rowStatus = String(tr.querySelector('.status-text').textContent || '').trim();
+          else if (tr.children && tr.children[2] && tr.children[2].textContent) rowStatus = String(tr.children[2].textContent).trim();
+        } catch (e) { rowStatus = ''; }
         if (editFullname) editFullname.value = fullname || '';
         if (editUsername) editUsername.value = username || '';
         if (editTimeIn) editTimeIn.value = parseTimeToHHMM(tIn) || '';
         if (editTimeOut) editTimeOut.value = parseTimeToHHMM(tOut) || '';
+        // populate status select if present
+        try {
+          const editStatusEl = document.getElementById('edit-student-status');
+          if (editStatusEl) {
+            if (rowStatus) {
+              // try to match option
+              const match = Array.from(editStatusEl.options).find(o => (o.value || '').toLowerCase() === rowStatus.toLowerCase());
+              if (match) editStatusEl.value = match.value;
+              else {
+                // add custom option
+                const opt = document.createElement('option'); opt.value = rowStatus; opt.textContent = rowStatus; editStatusEl.appendChild(opt); editStatusEl.value = opt.value;
+              }
+            } else {
+              editStatusEl.value = 'Present';
+            }
+          }
+        } catch (e) { /* ignore */ }
         // ensure section selects are populated first (controller exposes helper)
         if (editSectionSelect && (!editSectionSelect.options || editSectionSelect.options.length === 0)) {
           try {
@@ -880,6 +940,7 @@
         if (editSection) editSection.value = '';
         if (editTimeIn) editTimeIn.value = '';
         if (editTimeOut) editTimeOut.value = '';
+        try { const editStatusEl = document.getElementById('edit-student-status'); if (editStatusEl) editStatusEl.value = 'Present'; } catch (e) { }
       }
 
       editPanel.dataset.editId = id || '';
@@ -901,6 +962,7 @@
         const id = Number(editPanel && editPanel.dataset && editPanel.dataset.editId) || null;
         const fullname = editFullname ? editFullname.value.trim() : '';
         const username = editUsername ? editUsername.value.trim() : '';
+        const status = (document.getElementById('edit-student-status') && String(document.getElementById('edit-student-status').value || '').trim()) || undefined;
         // resolve section: prefer select (unless 'new'), otherwise free-text input
         let section = '';
         try {
@@ -928,7 +990,8 @@
               student_fullname: fullname || undefined,
               student_username: username || undefined,
               section: section || undefined,
-              student_section: section || undefined
+              student_section: section || undefined,
+              status: status || undefined
             };
             if (id && typeof store.updateRow === 'function') {
               try { await store.updateRow(id, payload); } catch (e) { /* ignore */ }
@@ -956,6 +1019,8 @@
                 const d1 = new Date(); d1.setHours(hh1 || 0, mm1 || 0, 0, 0);
                 serverPayload.time_in = d1.toISOString();
               }
+              // include status when present
+              if (status) serverPayload.status = status;
               if (tOut) {
                 const [hh2, mm2] = String(tOut).split(':').map(Number);
                 const d2 = new Date(); d2.setHours(hh2 || 0, mm2 || 0, 0, 0);
@@ -995,7 +1060,7 @@
         // update DOM immediate feedback
         try {
           if (id) {
-            const tr = document.querySelector(`#attendance-tbody tr[data-id="${id}"]`);
+            const tr = document.querySelector(`#attendance-tbody tr[data-id="${id}"]`) || document.querySelector(`#attendance-specDate-tbody tr[data-id="${id}"]`);
             if (tr) {
               // locate fullname cell robustly
               try {
@@ -1018,6 +1083,24 @@
               // update dataset attrs
               if (section) tr.dataset.section = section;
               if (username) tr.dataset.username = username;
+
+              // update status cell / select
+              try {
+                const stEl = tr.querySelector('.status-select');
+                if (stEl && status) {
+                  // try to find matching option
+                  const m = Array.from(stEl.options).find(o => (o.value || '').toLowerCase() === String(status).toLowerCase());
+                  if (m) stEl.value = m.value;
+                  else {
+                    const opt = document.createElement('option'); opt.value = status; opt.textContent = status; stEl.appendChild(opt); stEl.value = opt.value;
+                  }
+                } else if (status) {
+                  // try calendar row / plain td fallback (status likely in children[2])
+                  try {
+                    if (tr.children && tr.children[2]) tr.children[2].textContent = status;
+                  } catch (e) { /* ignore */ }
+                }
+              } catch (e) { /* ignore */ }
 
               // update times cell
               const sel = tr.querySelector('.times-select');
