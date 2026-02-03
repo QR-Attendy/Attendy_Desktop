@@ -4,6 +4,12 @@ const sub = document.querySelector('.sub');
 const sub2 = document.querySelector('.sub2');
 const QRcontainer = document.querySelector('#QR-main');
 
+// Attach event listeners instead of using inline handlers (CSP-compliant)
+if (toggleButton) toggleButton.addEventListener('click', toggleSidebar);
+document.querySelectorAll('.dropdown-btn').forEach(btn => {
+  btn.addEventListener('click', () => toggleSubMenu(btn));
+});
+
 document.querySelector('#scan-QR').addEventListener('click', () => {
   const scannerContainer = document.querySelector('.scanner-container');
   if (scannerContainer) {

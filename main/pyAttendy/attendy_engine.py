@@ -12,7 +12,7 @@ from datetime import datetime
 import multiprocessing
 
 # NOTE: INSTALL A GODDAMN WAITRESS you Restless skibidi coder (message from Spades)
-# NOTE" next update lol
+# NOTE: im trying twin
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -447,8 +447,40 @@ def health():
 if __name__ == "__main__":
     # Required for PyInstaller on Windows to avoid multiprocessing issues
     multiprocessing.freeze_support()
+    import sys
 
-    # Enforce production config
-    app.config.update(DEBUG=False)
-    # Run only on localhost, fixed port, no debug, no reloader
-    app.run(host="127.0.0.1", port=5005, debug=False, use_reloader=False)
+    # Determine mode: production by default. Enable debug/dev when:
+    # - env ATTENDY_DEBUG=1/true
+    # - env ATTENDY_MODE=dev|development|debug
+    # - CLI flag --dev or --debug
+    debug_mode = False # default to production enable if needed
+    if os.environ.get('ATTENDY_DEBUG', '').lower() in ('1', 'true', 'yes'):
+        debug_mode = True
+    if os.environ.get('ATTENDY_MODE', '').lower() in ('dev', 'development', 'debug'):
+        debug_mode = True
+    if '--dev' in sys.argv or '--debug' in sys.argv:
+        debug_mode = True
+
+    if debug_mode:
+        # Development / debugging mode: enable Flask debugger + reloader
+        app.config.update(DEBUG=True)
+        try:
+            logging.getLogger('werkzeug').setLevel(logging.DEBUG)
+        except Exception:
+            pass
+        app.logger.setLevel(logging.DEBUG)
+        app.run(host='127.0.0.1', port=5005, debug=True, use_reloader=True)
+    else:
+        # Production-ish mode: disable debugger/reloader and prefer waitress
+        app.config.update(DEBUG=False)
+        try:
+            logging.getLogger('werkzeug').setLevel(logging.ERROR)
+        except Exception:
+            pass
+
+        try:
+            from waitress import serve
+            serve(app, host='127.0.0.1', port=5005)
+        except Exception:
+            # Fallback to Flask built-in server without debug/reloader
+            app.run(host='127.0.0.1', port=5005, debug=False, use_reloader=False)

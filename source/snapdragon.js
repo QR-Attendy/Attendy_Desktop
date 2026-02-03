@@ -26,11 +26,12 @@ let dashboardWin;
 
 
 // Replace AttendyEngine with a starter that returns when backend ready
-function startBackend({ timeoutMs = 15000, intervalMs = 300 } = {}) {
+function startBackend({ timeoutMs = 30000, intervalMs = 300 } = {}) {
   return new Promise((resolve, reject) => {
     // spawn process (dev vs production)
     if (isDev) {
-      PyAttendy = spawn('python', [path.join(__dirname, '../main/pyAttendy/attendy_engine.py')], { stdio: ['ignore', 'pipe', 'pipe'] });
+      // Run python with unbuffered output so logs appear immediately
+      PyAttendy = spawn('python', ['-u', path.join(__dirname, '../main/pyAttendy/attendy_engine.py')], { stdio: ['ignore', 'pipe', 'pipe'], env: process.env });
     } else {
       const exePath = path.join(process.resourcesPath, 'atom', 'attendy_engine.exe');
       PyAttendy = execFile(exePath, { windowsHide: true });
@@ -38,8 +39,24 @@ function startBackend({ timeoutMs = 15000, intervalMs = 300 } = {}) {
 
     if (!PyAttendy) return reject(new Error('failed to start backend process'));
 
-    PyAttendy.stdout && PyAttendy.stdout.on("data", d => console.log("Python log -", d.toString()));
-    PyAttendy.stderr && PyAttendy.stderr.on("data", d => console.error("Python log -", d.toString()));
+    // Relay logs and watch for server-ready messages to speed up startup
+    if (PyAttendy.stdout) {
+      PyAttendy.stdout.on("data", d => {
+        const text = d.toString();
+        console.log("Py Log: ", text);
+        // Some servers (waitress) print "Serving on http://127.0.0.1:5005"
+        if (text.includes('Serving on') || text.includes('Running on http://') || text.includes('Press CTRL+C to quit')) {
+          // Heuristic: consider backend started when we see a server bind log
+          try { resolve(); } catch (e) { /* ignore if already settled */ }
+        }
+      });
+    }
+    if (PyAttendy.stderr) {
+      PyAttendy.stderr.on("data", d => {
+        const text = d.toString();
+        console.error("Python log -", text);
+      });
+    }
 
     const start = Date.now();
 
@@ -98,6 +115,7 @@ function startedWindow() {
       preload: path.join(__dirname, "../source/load.js"),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true
     }
   });
 
@@ -142,6 +160,7 @@ function dashboardWindow() {
       preload: path.join(__dirname, "../source/load.js"),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true
     }
   });
 
