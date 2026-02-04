@@ -16,6 +16,12 @@ main {
   }
 }
 
+/* Visibility set by data.js from session role (teacher vs student) */
+#student-main,
+#teacher-main {
+  display: none;
+}
+
 .camera-activation-container {
   transition: all 250ms ease-in-out;
   z-index: 100;
@@ -541,6 +547,10 @@ table {
 th,
 td {
   padding: 12px 15px;
+}
+
+td:not(:first-child) {
+  text-align: center;
 }
 
 thead th:first-child {
@@ -1215,9 +1225,7 @@ tbody tr:last-child td:last-child {
       transition: all 300ms ease-in-out;
       overflow: hidden;
       max-height: 0;
-      border: 1px solid white;
       border-radius: 20px;
-      box-shadow: -7px 7px 8px rgba(255, 246, 246, 0.1);
       padding: 5px;
       margin: 10px;
 
@@ -1226,6 +1234,23 @@ tbody tr:last-child td:last-child {
 
         img {
           width: 50px;
+        }
+
+        .text-content {
+          padding: 5px;
+        }
+      }
+
+      button {
+        transition: all 300ms ease-in-out;
+        cursor: pointer;
+        border: none;
+        border-radius: 20px;
+        padding: 10px;
+        margin: 5px;
+
+        &:disabled {
+          cursor: not-allowed;
         }
       }
     }
@@ -1371,7 +1396,7 @@ tbody tr:last-child td:last-child {
 
   &.show {
     display: block;
-    width: 500px;
+    width: 20%;
     height: 200px;
   }
 

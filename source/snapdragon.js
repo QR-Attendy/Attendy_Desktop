@@ -24,6 +24,35 @@ let PyAttendy;
 let startedWin;
 let dashboardWin;
 
+// Robustly kill the Python backend and any children it spawned.
+function killBackendProcess() {
+  if (!PyAttendy || !PyAttendy.pid) return;
+  const pid = PyAttendy.pid;
+  try {
+    if (process.platform === 'win32') {
+      // Use taskkill to terminate the process tree on Windows
+      const killer = spawn('taskkill', ['/PID', String(pid), '/T', '/F']);
+      killer.on('error', (err) => {
+        console.error('taskkill failed:', err);
+      });
+    } else {
+      // Try to kill child processes first (POSIX) then the main pid
+      try {
+        // pkill -P <pid> kills children by parent pid
+        const ppk = spawn('pkill', ['-P', String(pid)]);
+        ppk.on('error', () => { /* ignore if pkill missing */ });
+      } catch (e) { /* ignore */ }
+      try { process.kill(pid, 'SIGTERM'); } catch (e) { /* ignore */ }
+      // ensure termination after short delay
+      setTimeout(() => {
+        try { process.kill(pid, 'SIGKILL'); } catch (e) { /* ignore */ }
+      }, 500);
+    }
+  } catch (e) {
+    try { PyAttendy.kill(); } catch (ee) { console.error('failed to kill backend:', ee); }
+  }
+}
+
 
 // Replace AttendyEngine with a starter that returns when backend ready
 function startBackend({ timeoutMs = 30000, intervalMs = 300 } = {}) {
@@ -38,6 +67,16 @@ function startBackend({ timeoutMs = 30000, intervalMs = 300 } = {}) {
     }
 
     if (!PyAttendy) return reject(new Error('failed to start backend process'));
+
+    // ensure we clear the reference when the backend exits
+    try {
+      PyAttendy.on && PyAttendy.on('exit', (code, signal) => {
+        console.log('PyAttendy exited:', code, signal);
+        PyAttendy = null;
+      });
+      PyAttendy.on && PyAttendy.on('close', () => { PyAttendy = null; });
+      PyAttendy.on && PyAttendy.on('error', (err) => { console.error('PyAttendy error:', err); });
+    } catch (e) { /* ignore */ }
 
     // Relay logs and watch for server-ready messages to speed up startup
     if (PyAttendy.stdout) {
@@ -96,10 +135,34 @@ ipcMain.on("window-control", (event, action) => {
     case "minimize": win.minimize(); break;
     case "maximize": win.isMaximized() ? win.unmaximize() : win.maximize(); break;
     case "close": win.close(); break;
+    case "reload":
+      // allow reload in dev or when explicitly enabled in store
+      try {
+        if (isDev || store.get('allowReload')) win.reload();
+      } catch (e) { console.warn('reload failed', e); }
+      break;
+    case "toggle-devtools":
+      // allow devtools in dev or when explicitly enabled in store
+      try {
+        if (isDev || store.get('allowDevtools')) {
+          if (!win.webContents.isDevToolsOpened()) win.webContents.openDevTools({ mode: 'detach' });
+          else win.webContents.closeDevTools();
+        }
+      } catch (e) { console.warn('toggle-devtools failed', e); }
+      break;
     default: console.warn("Unknown action:", action);
   }
 
   if (win.isMaximized()) win.send("window-control-signal");
+});
+
+// Allow renderer to persist small boolean settings via Store
+ipcMain.handle('set-setting', (_, key, value) => {
+  try { store.set(key, value); return { ok: true }; } catch (e) { return { ok: false, error: String(e) }; }
+});
+
+ipcMain.handle('get-setting', (_, key) => {
+  try { return store.get(key); } catch (e) { return null; }
 });
 // -------------------------------------
 // WINDOWS
@@ -215,9 +278,7 @@ app.whenReady().then(async () => {
   } catch (err) {
     console.error("Failed to start backend:", err);
     // ensure process is killed and quit gracefully
-    if (PyAttendy) {
-      try { PyAttendy.kill(); } catch (e) { }
-    }
+    try { killBackendProcess(); } catch (e) { /* ignore */ }
     app.quit();
   }
 });
@@ -249,13 +310,7 @@ ipcMain.on("open-dashboard", () => {
 // Cleanup on quit
 // -------------------------------------
 app.on("before-quit", () => {
-  if (PyAttendy) {
-    try {
-      PyAttendy.kill();
-    } catch (e) {
-      console.error("Failed to kill backend process:", e);
-    }
-  }
+  try { killBackendProcess(); } catch (e) { /* ignore */ }
   // unregister global shortcuts when quitting
   try { globalShortcut.unregisterAll(); } catch (e) { /* ignore */ }
 });

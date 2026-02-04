@@ -453,7 +453,8 @@ if __name__ == "__main__":
     # - env ATTENDY_DEBUG=1/true
     # - env ATTENDY_MODE=dev|development|debug
     # - CLI flag --dev or --debug
-    debug_mode = False # default to production enable if needed
+    # Default to False so the server does not enable the reloader/child process
+    debug_mode = False
     if os.environ.get('ATTENDY_DEBUG', '').lower() in ('1', 'true', 'yes'):
         debug_mode = True
     if os.environ.get('ATTENDY_MODE', '').lower() in ('dev', 'development', 'debug'):

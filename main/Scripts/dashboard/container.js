@@ -111,29 +111,42 @@ document.addEventListener('DOMContentLoaded', () => {
   // position panel directly under button
   function positionPanelUnderButton(btn) {
     if (!btn) return;
-
     const btnRect = btn.getBoundingClientRect();
     const panelWidth = ntfPanel.offsetWidth;
     const panelHeight = ntfPanel.offsetHeight;
 
-    let left = btnRect.left + window.scrollX;
-    let top = btnRect.bottom + window.scrollY + 8; // 8px gap
-
-    // keep panel within viewport horizontally
+    const viewportLeft = window.scrollX;
     const viewportRight = window.scrollX + window.innerWidth;
-    if (left + panelWidth > viewportRight - 8) {
-      left = Math.max(window.scrollX + 8, viewportRight - panelWidth - 8);
-    }
-
-    // if panel would go below viewport, try placing above the button
     const viewportBottom = window.scrollY + window.innerHeight;
-    if (top + panelHeight > viewportBottom - 8) {
-      const altTop = btnRect.top + window.scrollY - panelHeight - 8;
-      if (altTop > window.scrollY + 8) top = altTop;
+
+    // Preferred: place the panel to the LEFT of the button
+    let left = Math.round(btnRect.left + window.scrollX - panelWidth - 8); // 8px gap to the left
+    // Vertical position remains below the button by default
+    let top = Math.round(btnRect.bottom + window.scrollY + 8);
+
+    // If placing to the left would overflow on the left, try placing to the RIGHT of the button
+    if (left < viewportLeft + 8) {
+      const rightCandidate = Math.round(btnRect.right + window.scrollX + 8);
+      if (rightCandidate + panelWidth <= viewportRight - 8) {
+        left = rightCandidate;
+      } else {
+        // Neither side fits fully: clamp within viewport (prefer left edge)
+        left = Math.max(viewportLeft + 8, viewportRight - panelWidth - 8);
+      }
     }
 
-    ntfPanel.style.left = `${Math.round(left)}px`;
-    ntfPanel.style.top = `${Math.round(top)}px`;
+    // If panel would go below viewport, try placing above the button
+    if (top + panelHeight > viewportBottom - 8) {
+      const altTop = Math.round(btnRect.top + window.scrollY - panelHeight - 8);
+      if (altTop > window.scrollY + 8) top = altTop;
+      else {
+        // clamp vertically so panel stays mostly visible
+        top = Math.max(window.scrollY + 8, viewportBottom - panelHeight - 8);
+      }
+    }
+
+    ntfPanel.style.left = `${left}px`;
+    ntfPanel.style.top = `${top}px`;
   }
 
   // toggle panel show/hide, optionally anchored to btn
@@ -178,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // reposition if viewport changes while open
   window.addEventListener('resize', () => {
-    if (ntfPanel.style.display === 'block') {
+    if (ntfPanel.classList.contains('show')) {
       // try to find the currently active button (one that was last used)
       const activeBtn = document.querySelector('.notification-btn[aria-pressed="true"]') || document.querySelector('.notification-btn');
       positionPanelUnderButton(activeBtn);

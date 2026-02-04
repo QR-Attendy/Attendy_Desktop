@@ -2,14 +2,8 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    script-src 'self';
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' data:;
-    font-src 'self';
-    connect-src 'self' http://localhost:* http://127.0.0.1:*;
-  ">
+  <meta charset="UTF-8" http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:*;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../main/zesty-design/source.css">
   <link rel="stylesheet" href="../main/zesty-design/dashboard.css">
@@ -35,7 +29,7 @@
     <nav id="side-bar">
       <ul>
         <li>
-          <span class="logo"><img src="../main/media/icons/LOGO-T.png" alt="LOGO">Attendy</span>
+          <span class="logo"><img src="../main/media/icons/LOGO-T-HD.png" alt="LOGO">Attendy</span>
           <button id="toggle-btn">
             <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed">
               <path
@@ -158,7 +152,7 @@
               <p id="username"></p>
               <p id="email"></p>
             </div>
-            <img id="profile-picture" src="../src/media/image/LOGO.png" alt="">
+            <img id="profile-picture" src="media/icons/default-profile.png" alt="">
           </button>
         </div>
       </div>
@@ -270,7 +264,7 @@
               <p id="username2"></p>
               <p id="email2"></p>
             </div>
-            <img id="profile-picture" src="../src/media/image/LOGO.png" alt="">
+            <img id="profile-picture" src="media/icons/default-profile.png" alt="">
           </button>
         </div>
       </div>
@@ -383,12 +377,12 @@
               <p id="username3"></p>
               <p id="email3"></p>
             </div>
-            <img id="profile-picture" src="../src/media/image/LOGO.png" alt="">
+            <img id="profile-picture" src="media/icons/default-profile.png" alt="">
           </button>
         </div>
       </div>
       <div class="main-statistics-container">
-        <h1>Not available </h1>
+        <h1 style="text-align: center;">Coming soon..</h1>
       </div>
 
     </section>
@@ -463,7 +457,9 @@
                 <th>Fullname</th>
                 <th>Section</th>
                 <th>Status</th>
-                <th>Time</th>
+                <th>Time in</th>
+                <th>Time Out</th>
+
               </tr>
             </thead>
             <tbody id="attendance-specDate-tbody">
@@ -494,7 +490,7 @@
                 </g>
               </svg>
             </div>
-            <img id="profile-picture" src="../main/media/icons/github-mark-white.png" alt="">
+            <img id="profile-picture" src="media/icons/default-profile.png" alt="">
           </button>
 
           <div class="profile-info">
@@ -508,14 +504,14 @@
 
         <div class="full-profile-settings-container">
           <h1>Profile Settings</h1>
-          <button id="school-check">
+          <button id="school-check" disabled>
             <img src="../main/media/icons/LOGO-T.png" alt="">
             <div class="text-content">
-              <p>Hello world</p>
-              <p>Description here</p>
+              <p>Your School</p>
+              <p>Manage the school's that you are registered with</p>
             </div>
           </button>
-          <button id="change-password">Change Password</button>
+          <button id="change-password" disabled>Change Password</button>
 
         </div>
 
@@ -548,6 +544,7 @@
             <span class="slider round"></span>
           </div>
         </label>
+
       </div>
 
       <div class="app-info">
@@ -558,6 +555,82 @@
     </section>
 
   </main>
+  <!-- END OF TEACHER MAIN -->
+
+  <!-- START OF STUDENT MAIN -->
+  <main id="student-main">
+    <nav id="side-bar">
+      <ul>
+        <li>
+          <span class="logo"><img src="../main/media/icons/LOGO-T-HD.png" alt="LOGO">Attendy</span>
+          <button id="toggle-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed">
+              <path
+                d="m313-480 155 156q11 11 11.5 27.5T468-268q-11 11-28 11t-28-11L228-452q-6-6-8.5-13t-2.5-15q0-8 2.5-15t8.5-13l184-184q11-11 27.5-11.5T468-692q11 11 11 28t-11 28L313-480Zm264 0 155 156q11 11 11.5 27.5T732-268q-11 11-28 11t-28-11L492-452q-6-6-8.5-13t-2.5-15q0-8 2.5-15t8.5-13l184-184q11-11 27.5-11.5T732-692q11 11 11 28t-11 28L577-480Z" />
+            </svg>
+          </button>
+        </li>
+
+        <p class="sub">MAIN</p>
+        <li>
+          <a href="#dashboard">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000">
+              <path
+                d="M520-600v-240h320v240H520ZM120-440v-400h320v400H120Zm400 320v-400h320v400H520Zm-400 0v-240h320v240H120Zm80-400h160v-240H200v240Zm400 320h160v-240H600v240Zm0-480h160v-80H600v80ZM200-200h160v-80H200v80Zm160-320Zm240-160Zm0 240ZM360-280Z" />
+            </svg>
+            <span>Dashboard</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="#calendar">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000">
+              <path
+                d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z" />
+            </svg>
+            <span>Calendar</span>
+          </a>
+        </li>
+
+        <li id="QR-main">
+          <div class="QR-container">
+            <div class="qr-image-container">
+              <img id="qr-image" src="" alt="">
+            </div>
+            <p id="description">Scan your student's QR Code today to be able to track their attendance</p>
+            <div class="button-qr-container">
+              <button id="scan-QR">Scan QR</button>
+              <button id="show-QR">Show QR</button>
+            </div>
+
+          </div>
+        </li>
+
+        <div class="sub-side-bar">
+          <li></li>
+          <p class="sub2">USER</p>
+          <li>
+            <a href="#settings">
+              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                fill="#000000">
+                <path
+                  d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z" />
+              </svg>
+              <span>Settings</span>
+            </a>
+          </li>
+        </div>
+
+      </ul>
+    </nav>
+
+    <div class="student-dashboard-container"></div>
+
+  </main>
+
+  <!-- END OF STUDENT MAIN -->
+
+  <!-- =============================================================================== -->
 
   <!-- Loading Interface (Soon be Depricated) -->
   <div class="loading-interface-dash">

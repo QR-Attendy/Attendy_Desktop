@@ -174,11 +174,51 @@ async function renderSelectedDateAttendance(dateInput) {
           const rid = r.id || r._id || r.row_id;
           try { tr.setAttribute('data-id', String(rid)); } catch (e) { }
         }
+
         const fullname = r.student_fullname || r.fullname || r.name || '';
         const section = r.section || r.student_section || '';
         const status = r.status || '';
-        const time = r.timestamp || r.time_in || r.time || '';
-        tr.innerHTML = `<td>${_escapeHtml(fullname)}</td><td>${_escapeHtml(section)}</td><td>${_escapeHtml(status)}</td><td>${_escapeHtml(time)}</td>`;
+        // preserve raw time fields on the row dataset so edit panel can parse them
+        const timeInRaw = r.time_in || r.timestamp || r.time || '';
+        const timeOutRaw = r.time_out || r.timestamp_out || r.timeOut || '';
+
+        // username if present on record
+        const username = r.username || r.user || r.student_username || r.student_id || '';
+
+        // format for display
+        function fmtTime(raw) {
+          if (!raw && raw !== 0) return '';
+          try {
+            const d = _parseDateFlexible(raw);
+            if (d && !Number.isNaN(d.getTime())) {
+              return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+          } catch (e) { /* ignore */ }
+          return String(raw || '').trim();
+        }
+
+        const timeIn = fmtTime(timeInRaw);
+        const timeOut = fmtTime(timeOutRaw);
+
+        // attach useful data-* attributes for other UI code (edit panel, exporters)
+        try {
+          if (username) tr.dataset.username = String(username);
+          if (section) tr.dataset.section = String(section);
+          if (timeInRaw) tr.dataset.timeIn = String(timeInRaw);
+          if (timeOutRaw) tr.dataset.timeOut = String(timeOutRaw);
+        } catch (e) { /* ignore */ }
+
+        // render cells with class names so collectors/editors can find them reliably
+        // include a hidden .times-select inside the time-out cell so the existing edit panel
+        // code can read Time In / Time Out values via options (it prefers .times-select when present)
+        tr.innerHTML = `<td class="fullname-cell">${_escapeHtml(fullname)}</td>` +
+          `<td class="section-cell">${_escapeHtml(section)}</td>` +
+          `<td class="status-text">${_escapeHtml(status)}</td>` +
+          `<td class="time-in-cell">${_escapeHtml(timeIn)}</td>` +
+          `<td class="time-out-cell">${_escapeHtml(timeOut)}<select class="times-select" style="display:none">` +
+          `<option value="${_escapeHtml(timeInRaw)}">Time In: ${_escapeHtml(timeIn)}</option>` +
+          `<option value="${_escapeHtml(timeOutRaw)}">Time Out: ${_escapeHtml(timeOut)}</option>` +
+          `</select></td>`;
         tbody.appendChild(tr);
       }
     }

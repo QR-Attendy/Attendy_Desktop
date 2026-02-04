@@ -2,18 +2,17 @@
   "name": "attendy",
   "productName": "Attendy",
   "version": "0.1.0-a3",
-  "description": "ALPHA",
+  "description": "Attendy",
   "license": "AGPL-3.0-only",
   "author": "ÆCE",
   "type": "module",
   "main": "source/snapdragon.js",
   "scripts": {
-    "start": "electron .",
-    "watch": "cross-env NODE_ENV=development electron .",
+    "start": "cross-env NODE_ENV=development electron .",
     "build": "electron-builder"
   },
   "build": {
-    "appId": "title.attendy.test",
+    "appId": "com.attendy.bld",
     "win": {
       "target": [
         {
@@ -29,7 +28,7 @@
       "deleteAppDataOnUninstall": true,
       "installerIcon": "main/media/icons/LOGO-ico.ico",
       "uninstallerIcon": "main/media/icons/LOGO-ico.ico",
-      "uninstallDisplayName": "Nuclear Bomb",
+      "uninstallDisplayName": "Attendy on Desktop",
       "license": "LICENSE"
     },
     "extraResources": [

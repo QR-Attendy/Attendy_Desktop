@@ -1,4 +1,30 @@
 
+// Show teacher-main or student-main based on user role from session
+(function setMainByRole() {
+  document.addEventListener('DOMContentLoaded', async () => {
+    const teacherMain = document.getElementById('teacher-main');
+    const studentMain = document.getElementById('student-main');
+    if (!teacherMain || !studentMain) return;
+
+    try {
+      const user = await window.attendyAPI.getSession();
+      const role = (user && user.role) ? String(user.role).toLowerCase() : 'teacher';
+
+      if (role === 'student') {
+        studentMain.style.display = 'grid';
+        teacherMain.style.display = 'none';
+      } else {
+        teacherMain.style.display = 'grid';
+        studentMain.style.display = 'none';
+      }
+    } catch (e) {
+      console.warn('setMainByRole failed, defaulting to teacher', e);
+      teacherMain.style.display = 'grid';
+      studentMain.style.display = 'none';
+    }
+  });
+})();
+
 // Dark theme toggle + persistence
 // Looks for the checkbox inside the label with id="dark-theme"
 (() => {
@@ -19,7 +45,6 @@
   }
 
   // Expose global toggle function if other scripts want to call it
-  window.toggleDarkMode = setDarkMode;
 
   document.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem(storageKey);

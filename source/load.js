@@ -4,6 +4,9 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   windowControl: (action) => ipcRenderer.send('window-control', action),
+  // Persist small app settings via main-process Store
+  setSetting: (key, value) => ipcRenderer.invoke('set-setting', key, value),
+  getSetting: (key) => ipcRenderer.invoke('get-setting', key),
 });
 
 contextBridge.exposeInMainWorld("attendyAPI", {
@@ -93,5 +96,5 @@ contextBridge.exposeInMainWorld("attendyAPI", {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(Object.assign({ id }, (newData || {})))
     }).then(res => res.json()),
-    
+
 });

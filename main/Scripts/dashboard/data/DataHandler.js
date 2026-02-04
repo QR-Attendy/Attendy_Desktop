@@ -1783,7 +1783,6 @@
         html += makeBtn('Check Info', 'info');
       } else if (tbodyId === 'attendance-specDate-tbody' && id) {
         html += makeBtn('Delete', 'delete');
-        html += makeBtn('Set Status', 'set-status');
         html += makeBtn('Edit', 'edit');
         html += makeBtn('Check Info', 'info');
       } else if (tbodyId === 'attendance-tbody' && id) {

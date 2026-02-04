@@ -127,7 +127,7 @@ main {
   /* main */
   --bg-main-body-clr: #efefef;
 
-  --bg-sidebar-clr: linear-gradient(162deg, cyan 0%, white 15%);
+  --bg-sidebar-clr: linear-gradient(162deg, #006ac0 0%, white 15%);
 
   /* specifically for containers lolz */
   --shadow-clr: rgba(0, 0, 0, 0.2);
@@ -178,13 +178,17 @@ main {
   --listStudentCalendar-btn-border-clr: #c2c2c2;
   --listStudentCalendar-btn-hover-clr: #8e8e8e;
   --listStudentCalendar-txt-hover-clr: #79ff84;
+
+  /* settings */
+  --btn-setting-clr: #000000;
+  --btn-setting-bg-clr: #b7b7b7;
 }
 
 .dark-theme {
   /* Dark theme variable overrides */
   --bg-main-body-clr: #0f0f0f;
   /* dark navy */
-  --bg-sidebar-clr: linear-gradient(162deg, #006f7e -1%, #000716 15%);
+  --bg-sidebar-clr: linear-gradient(162deg, #04007e -1%, #000716 15%);
 
   --shadow-clr: hsla(0, 0%, 100%, 0.3);
   --shadow-inverse-clr: rgba(255, 255, 255, 0.03);
@@ -232,6 +236,12 @@ main {
   --listStudentCalendar-btn-border-clr: #1f2326;
   --listStudentCalendar-btn-hover-clr: #273034;
   --listStudentCalendar-txt-hover-clr: #8be79d;
+
+  /* settings */
+  --btn-setting-clr: #ffffff;
+  --btn-setting-bg-clr: #3d3d3d;
+
+  /*  */
 }
 
 /* =========================================================== */
@@ -308,7 +318,6 @@ body {
 }
 
 /* Table (Universal) */
-
 table {
   color: var(--dash-txt-clr);
 
@@ -323,6 +332,13 @@ table {
       background-color: var(--tableTboy-bg-clr);
     }
   }
+}
+
+.notification-btn {
+  svg {
+    fill: var(--dash-svg-clr);
+  }
+  
 }
 
 .sub-dashboard-container {
@@ -467,6 +483,29 @@ table {
     }
 
   }
+
+  .full-profile-container {
+    &:hover {
+
+      .full-profile-settings-container {
+        box-shadow: -7px 7px 8px var(--shadow-clr);
+      }
+    }
+  }
+}
+
+.full-profile-settings-container {
+  color: var(--dash-txt-clr);
+
+  button {
+    text-align: start;
+    color: var(--btn-setting-clr);
+    background-color: var(--btn-setting-bg-clr);
+    &:disabled {
+      color: var(--addStudent-btn-hover-bg-clr);
+      background-color: var(--dashContainer-bg-clr);
+    }
+  }
 }
 
 .notification-panel {
@@ -480,6 +519,9 @@ table {
   }
 }
 
+.main-statistics-container {
+  color: var(--dash-txt-clr);
+}
 
 /* ========================================== */
 /* miscellaneous */

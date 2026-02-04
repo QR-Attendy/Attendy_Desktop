@@ -1,136 +1,161 @@
-const toggleButton = document.getElementById('toggle-btn')
-const sidebar = document.getElementById('side-bar')
-const sub = document.querySelector('.sub');
-const sub2 = document.querySelector('.sub2');
-const QRcontainer = document.querySelector('#QR-main');
+// Run sidebar logic for both teacher-main and student-main
+const MAIN_IDS = ['teacher-main', 'student-main'];
 
-// Attach event listeners instead of using inline handlers (CSP-compliant)
-if (toggleButton) toggleButton.addEventListener('click', toggleSidebar);
-document.querySelectorAll('.dropdown-btn').forEach(btn => {
-  btn.addEventListener('click', () => toggleSubMenu(btn));
-});
+function initSidebar(sidebar) {
+  const mainEl = sidebar.closest('main');
+  const toggleButton = sidebar.querySelector('#toggle-btn');
+  const sub = sidebar.querySelector('.sub');
+  const sub2 = sidebar.querySelector('.sub2');
+  const QRcontainer = sidebar.querySelector('#QR-main');
 
-document.querySelector('#scan-QR').addEventListener('click', () => {
-  const scannerContainer = document.querySelector('.scanner-container');
-  if (scannerContainer) {
-    scannerContainer.classList.toggle('activate');
-  }
-});
-
-function updateQRcontainerVisibility() {
-  const hasShownSub = sidebar.querySelector('.show') !== null;
-  const isSidebarClosed = sidebar.classList.contains('close');
-  if (QRcontainer) {
-    if (hasShownSub || isSidebarClosed) {
-      QRcontainer.classList.toggle('hide-container', true);
-    } else {
-      QRcontainer.classList.toggle('hide-container', false);
+  function updateQRcontainerVisibility() {
+    const hasShownSub = sidebar.querySelector('.show') !== null;
+    const isSidebarClosed = sidebar.classList.contains('close');
+    if (QRcontainer) {
+      if (hasShownSub || isSidebarClosed) {
+        QRcontainer.classList.toggle('hide-container', true);
+      } else {
+        QRcontainer.classList.toggle('hide-container', false);
+      }
     }
   }
-}
 
-function toggleSidebar() {
-  sidebar.classList.toggle('close')
-  toggleButton.classList.toggle('rotate')
-  sub.classList.toggle('hide-text')
-  sub2.classList.toggle('hide-text')
-
-  closeAllSubMenus()
-  updateQRcontainerVisibility()
-}
-
-function toggleSubMenu(button) {
-
-  if (!button.nextElementSibling.classList.contains('show')) {
-    closeAllSubMenus()
+  function closeAllSubMenus() {
+    Array.from(sidebar.getElementsByClassName('show')).forEach(ul => {
+      ul.classList.remove('show');
+      if (ul.previousElementSibling) ul.previousElementSibling.classList.remove('rotate');
+    });
+    updateQRcontainerVisibility();
   }
 
-  button.nextElementSibling.classList.toggle('show')
-  button.classList.toggle('rotate')
-
-  if (sidebar.classList.contains('close')) {
-    sidebar.classList.toggle('close')
-    toggleButton.classList.toggle('rotate')
-    sub.classList.toggle('hide-text')
-    sub2.classList.toggle('hide-text')
-
+  function toggleSidebar() {
+    sidebar.classList.toggle('close');
+    if (toggleButton) toggleButton.classList.toggle('rotate');
+    if (sub) sub.classList.toggle('hide-text');
+    if (sub2) sub2.classList.toggle('hide-text');
+    closeAllSubMenus();
   }
-  updateQRcontainerVisibility()
-}
 
-function closeAllSubMenus() {
-  Array.from(sidebar.getElementsByClassName('show')).forEach(ul => {
-    ul.classList.remove('show')
-    ul.previousElementSibling.classList.remove('rotate')
-  })
-  updateQRcontainerVisibility()
-}
-
-// Ensure initial visibility is correct on load
-updateQRcontainerVisibility()
-
-function setActiveNav() {
-  const hash = window.location.hash || '#dashboard'
-
-  // remove existing active classes
-  Array.from(sidebar.querySelectorAll('li.active')).forEach(li => li.classList.remove('active'))
-
-  // try to find an anchor matching the hash
-  const targetAnchor = sidebar.querySelector(`a[href="${hash}"]`)
-  if (targetAnchor) {
-    const li = targetAnchor.closest('li')
-    if (li) li.classList.add('active')
-
-    // if this anchor is inside a sub-menu, also open the sub-menu and mark its parent li active
-    const subMenu = targetAnchor.closest('.sub-menu')
-    if (subMenu) {
-      subMenu.classList.add('show')
-      const parentButton = subMenu.previousElementSibling
-      if (parentButton) parentButton.classList.add('rotate')
-      const parentLi = parentButton ? parentButton.closest('li') : null
-      if (parentLi) parentLi.classList.add('active')
-    } else {
-      // close other sub-menus if a top-level link is active
-      closeAllSubMenus()
+  function toggleSubMenu(button) {
+    const next = button.nextElementSibling;
+    if (!next || !next.classList.contains('show')) {
+      closeAllSubMenus();
     }
-  } else {
-    // If we didn't find a matching anchor, just ensure submenus closed
-    closeAllSubMenus()
+    if (next) next.classList.toggle('show');
+    button.classList.toggle('rotate');
+    if (sidebar.classList.contains('close')) {
+      sidebar.classList.toggle('close');
+      if (toggleButton) toggleButton.classList.toggle('rotate');
+      if (sub) sub.classList.toggle('hide-text');
+      if (sub2) sub2.classList.toggle('hide-text');
+    }
+    updateQRcontainerVisibility();
   }
-}
 
-window.addEventListener('hashchange', () => {
-  setActiveNav()
-})
+  if (toggleButton) toggleButton.addEventListener('click', toggleSidebar);
 
-// initialize active state on load
-setActiveNav()
+  sidebar.querySelectorAll('.dropdown-btn').forEach(btn => {
+    btn.addEventListener('click', () => toggleSubMenu(btn));
+  });
 
-// When user clicks Settings, collapse the sidebar for focus on settings
-try {
+  const scanBtn = sidebar.querySelector('#scan-QR');
+  if (scanBtn) {
+    scanBtn.addEventListener('click', () => {
+      const scannerContainer = document.querySelector('.scanner-container');
+      if (scannerContainer) scannerContainer.classList.toggle('activate');
+    });
+  }
+
+  updateQRcontainerVisibility();
+
   const settingsLink = sidebar.querySelector('a[href="#settings"]');
   if (settingsLink) {
-    settingsLink.addEventListener('click', (e) => {
-      // close sidebar UI
-      if (!sidebar.classList.contains('close')) sidebar.classList.add('close')
-      if (!toggleButton.classList.contains('rotate')) toggleButton.classList.add('rotate')
-      if (sub) sub.classList.add('hide-text')
-      if (sub2) sub2.classList.add('hide-text')
-      closeAllSubMenus()
-      updateQRcontainerVisibility()
-    })
+    settingsLink.addEventListener('click', () => {
+      if (!sidebar.classList.contains('close')) sidebar.classList.add('close');
+      if (toggleButton && !toggleButton.classList.contains('rotate')) toggleButton.classList.add('rotate');
+      if (sub) sub.classList.add('hide-text');
+      if (sub2) sub2.classList.add('hide-text');
+      closeAllSubMenus();
+      updateQRcontainerVisibility();
+    });
   }
-} catch (e) { console.warn('settings collapse binding failed', e) }
 
-// probably slap this here too (QR panel)
-document.querySelector('#show-QR').addEventListener('click', () => {
-  document.querySelector('.Show-QR-panel').classList.toggle('active');
-  document.querySelector('.Show-QR-container').classList.toggle('active');
+  const showQRBtn = sidebar.querySelector('#show-QR');
+  if (showQRBtn) {
+    showQRBtn.addEventListener('click', () => {
+      const panel = mainEl.querySelector('.Show-QR-panel');
+      const container = mainEl.querySelector('.Show-QR-container');
+      if (panel) panel.classList.toggle('active');
+      if (container) container.classList.toggle('active');
+    });
+  }
 
+  const clsQRBtn = mainEl.querySelector('#cls-Show-QR-Panel');
+  if (clsQRBtn) {
+    clsQRBtn.addEventListener('click', () => {
+      const panel = mainEl.querySelector('.Show-QR-panel');
+      const container = mainEl.querySelector('.Show-QR-container');
+      if (panel) panel.classList.toggle('active');
+      if (container) container.classList.toggle('active');
+    });
+  }
+}
+
+// Initialize sidebar for each main (teacher-main, student-main)
+document.querySelectorAll(MAIN_IDS.map(id => '#' + id).join(', ')).forEach(mainEl => {
+  const sidebar = mainEl.querySelector('nav');
+  if (sidebar) initSidebar(sidebar);
 });
 
-document.querySelector('#cls-Show-QR-Panel').addEventListener('click', () => {
-  document.querySelector('.Show-QR-panel').classList.toggle('active');
-  document.querySelector('.Show-QR-container').classList.toggle('active');
+function setActiveNav() {
+  const hash = window.location.hash || '#dashboard';
 
-});
+  document.querySelectorAll(MAIN_IDS.map(id => '#' + id).join(', ')).forEach(mainEl => {
+    const sidebar = mainEl.querySelector('nav');
+    if (!sidebar) return;
+
+    Array.from(sidebar.querySelectorAll('li.active')).forEach(li => li.classList.remove('active'));
+
+    const targetAnchor = sidebar.querySelector(`a[href="${hash}"]`);
+    if (targetAnchor) {
+      const li = targetAnchor.closest('li');
+      if (li) li.classList.add('active');
+
+      const subMenu = targetAnchor.closest('.sub-menu');
+      if (subMenu) {
+        subMenu.classList.add('show');
+        const parentButton = subMenu.previousElementSibling;
+        if (parentButton) parentButton.classList.add('rotate');
+        const parentLi = parentButton ? parentButton.closest('li') : null;
+        if (parentLi) parentLi.classList.add('active');
+      } else {
+        Array.from(sidebar.getElementsByClassName('show')).forEach(ul => {
+          ul.classList.remove('show');
+          if (ul.previousElementSibling) ul.previousElementSibling.classList.remove('rotate');
+        });
+      }
+    } else {
+      Array.from(sidebar.getElementsByClassName('show')).forEach(ul => {
+        ul.classList.remove('show');
+        if (ul.previousElementSibling) ul.previousElementSibling.classList.remove('rotate');
+      });
+    }
+  });
+}
+
+window.addEventListener('hashchange', setActiveNav);
+setActiveNav();
+
+// Global for container.js: update QR panel visibility in both sidebars
+function updateQRcontainerVisibility() {
+  document.querySelectorAll(MAIN_IDS.map(id => '#' + id).join(', ')).forEach(mainEl => {
+    const sidebar = mainEl.querySelector('nav');
+    if (!sidebar) return;
+    const QRcontainer = sidebar.querySelector('#QR-main');
+    const hasShownSub = sidebar.querySelector('.show') !== null;
+    const isSidebarClosed = sidebar.classList.contains('close');
+    if (QRcontainer) {
+      QRcontainer.classList.toggle('hide-container', hasShownSub || isSidebarClosed);
+    }
+  });
+}
