@@ -4,6 +4,7 @@ main/pyAttendy/*.db
 main/pyAttendy/dist
 main/pyAttendy/*.spec
 main/pyAttendy/build
+build
 dist
 .venv/
 .vscode/
