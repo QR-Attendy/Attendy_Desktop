@@ -45,9 +45,16 @@ async function start() {
 
   try {
     const user = await window.attendyAPI.createUser(fullname, username, role);
+    if (user && user.status === "error") {
+      document.getElementById("warning-error").textContent = user.message || "Failed to create user.";
+      return;
+    }
+    if (!user || !user.username || !user.fullname) {
+      document.getElementById("warning-error").textContent = "Invalid user data returned. Please try again.";
+      return;
+    }
 
     await window.attendyAPI.saveSession(user);
-
     window.attendyAPI.openDashboard();
   } catch (error) {
     alert("Error creating user: " + error.message);

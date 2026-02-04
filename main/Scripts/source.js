@@ -35,18 +35,26 @@ document.addEventListener('DOMContentLoaded', () => {
   // email part will come soon if we have a server to connect email and send some kind of verification
   //if ther is no email display it as Unknown
   // the fact that its almost optional for users to have an email unless working on a company/School to save attendance records and retrieve on the cloud on their personal server
+  const safeFullname = (user && user.fullname) ? user.fullname : "Unknown Name";
+  const safeUsername = (user && user.username) ? user.username : "Unknown";
+  const safeEmail = (user && user.email) ? user.email : "Unregistered User";
+
   document.querySelectorAll('#fullname, #fullname2, #fullname3, #fullname4')
-    .forEach(el => el.innerText = user.fullname || "Unknown Name");
+    .forEach(el => el.innerText = safeFullname);
 
   document.querySelectorAll('#username, #username2, #username3, #username4')
-    .forEach(el => el.innerText = "@" + user.username || "@" + "Unknown");
+    .forEach(el => el.innerText = `@${safeUsername}`);
 
   document.querySelectorAll('#email, #email2, #email3, #email4')
-    .forEach(el => el.innerText = user.email || "Unregistered User");
+    .forEach(el => el.innerText = safeEmail);
 
-
-  const qr = await window.attendyAPI.generateQR(user);
-  document.querySelectorAll("#qr-image").forEach(el => el.src = `data:image/png;base64,${qr.qr_base64}`);
+  // Only generate QR if we have the required user fields
+  if (user && user.fullname && user.username && user.role) {
+    const qr = await window.attendyAPI.generateQR(user);
+    if (qr && qr.qr_base64) {
+      document.querySelectorAll("#qr-image").forEach(el => el.src = `data:image/png;base64,${qr.qr_base64}`);
+    }
+  }
 
 
 
