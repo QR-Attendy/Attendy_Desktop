@@ -134,15 +134,28 @@ def create_user():
 
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
-        # Prevent duplicate fullnames (case-insensitive)
-        c.execute("SELECT * FROM users WHERE lower(trim(fullname)) = ?", (fullname.lower(),))
+        # If username already exists, return that record (re-login flow)
+        c.execute("SELECT id, fullname, username, role, section FROM users WHERE username = ?", (username,))
+        existing = c.fetchone()
+        if existing:
+            conn.close()
+            qr_b64 = generate_qr(existing[1], existing[2], existing[3], existing[4] if len(existing) > 4 else None)
+            return jsonify({
+                "status": "ok",
+                "id": existing[0],
+                "fullname": existing[1],
+                "username": existing[2],
+                "role": existing[3],
+                "section": existing[4] if len(existing) > 4 else None,
+                "qr_base64": qr_b64
+            })
+
+        # Prevent duplicate fullnames for *different* usernames (case-insensitive)
+        c.execute("SELECT 1 FROM users WHERE lower(trim(fullname)) = ?", (fullname.lower(),))
         dup_full = c.fetchone()
         if dup_full:
             conn.close()
             return jsonify({"status": "error", "message": "fullname already exists"}), 409
-
-        c.execute("SELECT * FROM users WHERE username = ?", (username,))
-        existing = c.fetchone()
 
         if not existing:
             c.execute("INSERT INTO users(fullname, username, role, section) VALUES (?,?,?,?)",
@@ -169,6 +182,35 @@ def create_user():
         })
 
     except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/delete_user", methods=["POST"])
+def delete_user():
+    """Delete a user by username and remove related attendance rows."""
+    try:
+        data = request.get_json() or {}
+        username = (data.get("username") or "").strip().lower()
+        if username.startswith("@"):
+            username = username.lstrip("@")
+        if not username:
+            return jsonify({"status": "error", "message": "username required"}), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        # Remove attendance rows tied to the username
+        c.execute("DELETE FROM attendance WHERE student_username = ?", (username,))
+        attendance_deleted = c.rowcount
+        # Remove the user record
+        c.execute("DELETE FROM users WHERE username = ?", (username,))
+        user_deleted = c.rowcount
+        conn.commit()
+        conn.close()
+
+        return jsonify({"status": "ok", "deleted_user": user_deleted, "deleted_attendance": attendance_deleted})
+    except Exception as e:
+        tb = traceback.format_exc()
+        app.logger.error("Error in /delete_user: %s\n%s", e, tb)
         return jsonify({"status": "error", "message": str(e)}), 500
 
 #For automatic QR Generation if user exists

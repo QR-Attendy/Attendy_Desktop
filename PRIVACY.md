@@ -1,4 +1,4 @@
-# PRIVACY & DATA HANDLING — QR Attendy
+# PRIVACY & DATA HANDLING — QRttendX
 
 QR Attendy processes attendance-related data which may include student names, IDs, timestamps, and device identifiers.
 

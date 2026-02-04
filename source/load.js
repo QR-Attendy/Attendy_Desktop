@@ -97,4 +97,12 @@ contextBridge.exposeInMainWorld("attendyAPI", {
       body: JSON.stringify(Object.assign({ id }, (newData || {})))
     }).then(res => res.json()),
 
+  // Delete user by username
+  deleteUser: (username) =>
+    fetch("http://localhost:5005/delete_user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username })
+    }).then(res => res.json()),
+
 });

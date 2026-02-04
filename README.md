@@ -5,7 +5,7 @@
 
 ## Status
 
-**Alpha** - Undergoing tests and modification under the Research from group 1 3i's 
+**Alpha** - Under Review/Survey form by teachers on CaisenHigh
 ## Key features
 
 - Electron-based desktop web app made purely on vanilla JavaScript.

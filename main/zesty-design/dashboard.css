@@ -907,7 +907,6 @@ tbody tr:last-child td:last-child {
       /* I hate this part */
       th:first-child,
       td:first-child {
-        width: 48px;
         max-width: 48px;
         box-sizing: border-box;
         padding-left: 8px;
@@ -916,7 +915,7 @@ tbody tr:last-child td:last-child {
         white-space: nowrap;
       }
 
-      th:nth-last-child(3),
+      th:nth-last-child(4),
       td:nth-last-child(3) {
         width: 200px;
         max-width: 320px;
