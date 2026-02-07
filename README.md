@@ -6,6 +6,7 @@
 ## Status
 
 **Alpha** - Under Review/Survey form by teachers on CaisenHigh
+**NOTE:** if you see the code looks unhinged, ignore it we just copy and paste some parts at stackoverflow and paste what things will work there
 ## Key features
 
 - Electron-based desktop web app made purely on vanilla JavaScript.
