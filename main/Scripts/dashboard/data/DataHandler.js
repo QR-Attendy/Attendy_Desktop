@@ -182,8 +182,10 @@
         el.textContent = `${mm}-${dd}-${yy}`;
       }
     } catch (e) { /* ignore if element missing */ }
-    const downloadBtn = document.getElementById('download-sheet');
-    const downloadSpecBtn = document.getElementById('download-sheet-specDate');
+
+    const downloadBtn = document.getElementById('download-today-sheet');
+    // download button inside the Calendar Download panel
+    const downloadSpecBtn = document.getElementById('download-specDate-btn');
     const deleteBtn = document.getElementById('delete');
     const applyTimeoutBtn = document.getElementById('apply-timeout-btn');
     const selectAll = document.getElementById('select-all-rows');
@@ -302,17 +304,12 @@
       });
     }
 
-    // calendar download (Attendance for selected date) — open Download Options panel
-    if (downloadSpecBtn) {
-      downloadSpecBtn.addEventListener('click', (ev) => {
-        try {
-          ev && ev.preventDefault && ev.preventDefault();
-        } catch (e) { }
-        const panel = document.querySelector('.download-option-panel');
-        if (!panel) {
-          showNotice && typeof showNotice === 'function' && showNotice('Missing panel', 'Download options panel not found');
-          return;
-        }
+    // Calendar download: open panel via explicit opener button, and perform download via panel button
+    const openSpecPanelBtn = document.getElementById('open-download-option-panel');
+    const panel = document.querySelector('.download-option-panel');
+    if (openSpecPanelBtn && panel) {
+      openSpecPanelBtn.addEventListener('click', (ev) => {
+        try { ev && ev.preventDefault && ev.preventDefault(); } catch (e) { }
         // populate week start/end labels (this week) if present
         try {
           const now = new Date();
@@ -329,6 +326,73 @@
         } catch (e) { /* ignore */ }
         panel.style.display = 'flex';
         panel.classList.add('active');
+      });
+    }
+
+    // hide/show the week-select container depending on download option
+    try {
+      const downloadOptionSelect = document.getElementById('download-option-select');
+      const weekSelectContainer = document.querySelector('.select-container.week-select');
+      function updateWeekSelectVisibility() {
+        if (!downloadOptionSelect || !weekSelectContainer) return;
+        const v = String(downloadOptionSelect.value || '').toLowerCase();
+        if (v === 'today') weekSelectContainer.style.display = 'none';
+        else weekSelectContainer.style.display = '';
+      }
+      if (downloadOptionSelect) {
+        downloadOptionSelect.addEventListener('change', updateWeekSelectVisibility);
+        // initialize visibility
+        try { updateWeekSelectVisibility(); } catch (e) { /* ignore */ }
+      }
+    } catch (e) { /* ignore */ }
+
+    // actual download action inside the download panel
+    if (downloadSpecBtn && panel) {
+      downloadSpecBtn.addEventListener('click', async (ev) => {
+        try { ev && ev.preventDefault && ev.preventDefault(); } catch (e) { }
+        const specTbody = document.getElementById('attendance-specDate-tbody');
+        if (!specTbody) { showNotice('No data', 'No attendance data available for the selected date'); return; }
+
+        // collect rows from tbody and only include visible rows
+        let rows = collectRowsDataFor('#attendance-specDate-tbody');
+        try {
+          rows = (rows || []).filter(r => {
+            try {
+              const tr = specTbody.querySelector(`tr[data-id="${r.id}"]`);
+              return tr ? ((tr.style.display || '') !== 'none') : true;
+            } catch (e) { return true; }
+          });
+        } catch (e) { /* ignore */ }
+
+        if (!rows || !rows.length) { showNotice('No rows', 'No visible rows to download'); return; }
+
+        // build filename based on currently selected option (or fallback to timestamp)
+        let base = '';
+        try {
+          const sel = document.querySelector('select[name="download-option-select"]') || document.querySelector('.select-box-download');
+          const opt = sel ? String(sel.value || '').trim() : '';
+          if (opt && opt !== 'specific-week' && opt !== 'specific-month' && opt !== 'specific-year') {
+            base = `attendance-${opt.toLowerCase()}`;
+          } else {
+            const now = new Date();
+            base = `attendance-${now.toISOString().slice(0, 10)}`;
+          }
+          // prefer calendar key if available
+          const calKey = (window.calendarAttendance && typeof window.calendarAttendance.getLastSelectedDateKey === 'function') ? window.calendarAttendance.getLastSelectedDateKey() : null;
+          if (calKey) base = `attendance-as-of-${calKey}`;
+        } catch (e) { base = `attendance-${(new Date()).toISOString().slice(0, 10)}`; }
+
+        const filename = base.toLowerCase().endsWith('.xlsx') ? base : `${base}.xlsx`;
+        try {
+          try { showNotice('Download started', 'Preparing your download...'); } catch (e) { /* ignore */ }
+          await downloadAsXlsx(rows, filename);
+          try { showNotice('Download complete', `Saved ${filename}`); } catch (e) { /* ignore */ }
+        } catch (e) {
+          console.error('spec date download failed', e);
+          try { showNotice('Download failed', 'An error occurred while preparing the file'); } catch (ee) { /* ignore */ }
+        }
+        // close panel after download
+        try { panel.style.display = 'none'; panel.classList.remove('active'); } catch (e) { /* ignore */ }
       });
     }
 
@@ -771,21 +835,26 @@
 
     function parseTimeToHHMM(raw) {
       if (!raw) return '';
-      const s = String(raw).trim();
-      // ISO date
-      const iso = Date.parse(s);
-      if (!isNaN(iso) && /T/.test(s)) {
-        const d = new Date(iso);
-        const hh = String(d.getHours()).padStart(2, '0');
-        const mm = String(d.getMinutes()).padStart(2, '0');
-        return `${hh}:${mm}`;
+      let s = String(raw || '').trim();
+      // remove common labels and non-breaking spaces
+      s = s.replace(/\u00A0/g, ' ');
+      s = s.replace(/^\s*(Time\s+In:|Time\s+Out:|IN:|OUT:)\s*/i, '').trim();
+
+      // If string looks like an ISO datetime (contains 'T' or trailing Z), prefer Date parsing
+      if (/\d{4}-\d{2}-\d{2}T/.test(s) || /Z$/.test(s)) {
+        const iso = Date.parse(s);
+        if (!isNaN(iso)) {
+          const d = new Date(iso);
+          return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
       }
-      // matches like 9:16:01AM or 09:16 AM or 12:47:00PM
-      const m = s.match(/([0-9]{1,2}):([0-9]{2})(?::[0-9]{2})?\s*(AM|PM)?/i);
+
+      // Try to match hh:mm with optional seconds and optional AM/PM (handles 9:16:01AM, 09:16 AM, 12:47:00PM)
+      const m = s.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?/i);
       if (m) {
         let hh = parseInt(m[1], 10);
         const mm = String(parseInt(m[2], 10)).padStart(2, '0');
-        const ampm = (m[3] || '').toUpperCase();
+        const ampm = (m[4] || '').toUpperCase();
         if (ampm === 'AM') {
           if (hh === 12) hh = 0;
         } else if (ampm === 'PM') {
@@ -793,11 +862,21 @@
         }
         return `${String(hh).padStart(2, '0')}:${mm}`;
       }
-      // fallback: try Date parse
-      const d2 = new Date(s);
-      if (!isNaN(d2.getTime())) {
+
+      // Try to parse other Date strings as fallback
+      const iso2 = Date.parse(s);
+      if (!isNaN(iso2)) {
+        const d2 = new Date(iso2);
         return `${String(d2.getHours()).padStart(2, '0')}:${String(d2.getMinutes()).padStart(2, '0')}`;
       }
+
+      // Try to extract any hh:mm pair anywhere in the string
+      const any = (String(raw || '')).match(/(\d{1,2}:\d{2})/);
+      if (any) {
+        const parts = any[1].split(':');
+        return `${String(parseInt(parts[0], 10)).padStart(2, '0')}:${String(parseInt(parts[1], 10)).padStart(2, '0')}`;
+      }
+
       return '';
     }
 
@@ -826,6 +905,33 @@
           if (mIn) tIn = mIn[1].replace(/\s+/g, '');
           if (mOut) tOut = mOut[1].replace(/\s+/g, '');
         }
+        // If times not present in DOM, try fallback to canonical store (handles ISO time_in fields)
+        try {
+          // If either time value is missing in the DOM, try the canonical store
+          if (((!tIn || !tIn.length) || (!tOut || !tOut.length)) && id) {
+            try {
+              const mod = await import('./attendanceStore.js');
+              const store = mod && mod.default ? mod.default : mod;
+              if (store) {
+                let rows = [];
+                try { rows = (typeof store.getTodayRows === 'function') ? store.getTodayRows() : (store.getRows ? store.getRows() : []); } catch (e) { rows = [] }
+                const row = rows.find(r => Number(r.id) === Number(id));
+                if (row) {
+                  // prefer common keys for time in
+                  if ((!tIn || !tIn.length)) {
+                    const candIn = row.time_in || row.timeIn || row.student_time_in || row.student_time || row.timestamp || '';
+                    if (candIn) tIn = String(candIn);
+                  }
+                  // prefer common keys for time out
+                  if ((!tOut || !tOut.length)) {
+                    const candOut = row.time_out || row.timeOut || row.student_time_out || row.studentTimeOut || row.checked_out_at || '';
+                    if (candOut) tOut = String(candOut);
+                  }
+                }
+              }
+            } catch (e) { /* ignore store import errors */ }
+          }
+        } catch (e) { /* ignore fallback errors */ }
         const username = (tr.dataset && tr.dataset.username) || '';
         // section: support calendar rows which don't have .section-cell or data-section
         let section = '';
@@ -845,8 +951,20 @@
         } catch (e) { rowStatus = ''; }
         if (editFullname) editFullname.value = fullname || '';
         if (editUsername) editUsername.value = username || '';
-        if (editTimeIn) editTimeIn.value = parseTimeToHHMM(tIn) || '';
-        if (editTimeOut) editTimeOut.value = parseTimeToHHMM(tOut) || '';
+        // assign parsed hh:mm to inputs; also set attribute to ensure UI widgets pick it up
+        try {
+          const parsedIn = parseTimeToHHMM(tIn) || '';
+          const parsedOut = parseTimeToHHMM(tOut) || '';
+          if (editTimeIn) {
+            editTimeIn.value = parsedIn;
+            try { editTimeIn.setAttribute('value', parsedIn); } catch (e) { /* ignore */ }
+          }
+          if (editTimeOut) {
+            editTimeOut.value = parsedOut;
+            try { editTimeOut.setAttribute('value', parsedOut); } catch (e) { /* ignore */ }
+          }
+          // no debug logs per user's request
+        } catch (e) { /* ignore assign errors */ }
         // populate status select if present
         try {
           const editStatusEl = document.getElementById('edit-student-status');
@@ -897,11 +1015,18 @@
           } else {
             // section exists on row but not in options: add it and select
             try {
-              const opt = document.createElement('option');
-              opt.value = secNormalized.replace(/\"/g, '&quot;');
-              opt.textContent = secNormalized;
-              editSectionSelect.appendChild(opt);
-              editSectionSelect.value = opt.value;
+              // only add if not already present (case-insensitive match on text or value)
+              const norm = secNormalized.toLowerCase();
+              const foundOpt = Array.from(editSectionSelect.options || []).find(o => ((o.textContent || '').trim().toLowerCase() === norm) || ((o.value || '').replace(/&quot;/g, '"').trim().toLowerCase() === norm));
+              if (foundOpt) {
+                editSectionSelect.value = foundOpt.value;
+              } else {
+                const opt = document.createElement('option');
+                opt.value = secNormalized.replace(/\"/g, '&quot;');
+                opt.textContent = secNormalized;
+                editSectionSelect.appendChild(opt);
+                editSectionSelect.value = opt.value;
+              }
               if (editSection) { editSection.style.display = 'none'; editSection.required = false; }
               try { updateEditSectionFieldVisibility(); } catch (e) { /* ignore */ }
             } catch (e) {
@@ -969,7 +1094,6 @@
             const payload = {
               student_fullname: fullname || undefined,
               student_username: username || undefined,
-              section: section || undefined,
               student_section: section || undefined,
               status: status || undefined
             };
@@ -983,7 +1107,7 @@
                 if (row) {
                   if (fullname) row.student_fullname = fullname;
                   if (username) row.student_username = username;
-                  if (section) { row.section = section; row.student_section = section; }
+                  if (section) row.student_section = section;
                   if (typeof store._internals === 'function') store._internals();
                 }
               } catch (e) { /* ignore */ }
@@ -1042,21 +1166,38 @@
           if (id) {
             const tr = document.querySelector(`#attendance-tbody tr[data-id="${id}"]`) || document.querySelector(`#attendance-specDate-tbody tr[data-id="${id}"]`);
             if (tr) {
-              // locate fullname cell robustly
-              try {
-                const tds = Array.from(tr.querySelectorAll('td'));
+              // helper: find sensible cells in a row (fullname, status, time cells)
+              function findRowCells(row, fullnameHint) {
+                const tds = Array.from(row.querySelectorAll('td'));
                 let fullnameTd = null;
+                let statusCell = null;
+                let inCell = null;
+                let outCell = null;
+                let timesTd = null;
                 for (const td of tds) {
+                  // skip checkbox and meta
                   if (td.querySelector && td.querySelector('.row-select')) continue;
                   if (td.classList && td.classList.contains('meta-cell')) continue;
-                  if (td.querySelector && td.querySelector('.times-select')) continue;
-                  if (td.querySelector && td.querySelector('.status-select')) continue;
-                  fullnameTd = td; break;
+                  // times-select explicit
+                  if (td.querySelector && td.querySelector('.times-select')) { timesTd = td; if (!inCell) inCell = td; if (!outCell) outCell = td; continue; }
+                  const txt = (td.textContent || '').trim();
+                  // fullname exact match
+                  if (!fullnameTd && fullnameHint && txt === String(fullnameHint).trim()) { fullnameTd = td; continue; }
+                  // status select
+                  if (!statusCell && td.querySelector && td.querySelector('.status-select')) { statusCell = td; continue; }
+                  // status text match
+                  if (!statusCell && /(Present|Late|Absent|Excused)/i.test(txt)) { statusCell = td; continue; }
+                  // time-like cell
+                  if (!inCell && /(\d{1,2}:\d{2})(?::\d{2})?\s*(AM|PM)?/i.test(txt)) { inCell = td; continue; }
+                  // choose first non-empty as fullname fallback
+                  if (!fullnameTd && txt) fullnameTd = td;
                 }
-                if (!fullnameTd) {
-                  // fallback to child index 1
-                  fullnameTd = tr.children[1] || null;
-                }
+                return { tds, fullnameTd, statusCell, inCell, outCell, timesTd };
+              }
+              const cells = findRowCells(tr, fullname);
+              // locate fullname cell robustly
+              try {
+                const fullnameTd = cells.fullnameTd || (tr.children[1] || null);
                 if (fullname && fullnameTd) fullnameTd.textContent = fullname;
               } catch (e) { /* ignore */ }
 
@@ -1064,11 +1205,12 @@
               if (section) tr.dataset.section = section;
               if (username) tr.dataset.username = username;
 
-              // update section cell (calendar table uses column 2)
+              // update section cell only if explicit .section-cell exists; always update dataset
               try {
                 const secEl = tr.querySelector('.section-cell');
-                if (secEl && section) secEl.textContent = section;
-                else if (section && tr.children && tr.children[1]) tr.children[1].textContent = section;
+                if (secEl && typeof section !== 'undefined') secEl.textContent = section;
+                // always keep dataset in sync for canonical reads; avoid writing arbitrary cells to prevent layout corruption
+                if (typeof section !== 'undefined') tr.dataset.section = section;
               } catch (e) { /* ignore */ }
 
               // update status cell / select
@@ -1079,13 +1221,17 @@
                   const m = Array.from(stEl.options).find(o => (o.value || '').toLowerCase() === String(status).toLowerCase());
                   if (m) stEl.value = m.value;
                   else {
-                    const opt = document.createElement('option'); opt.value = status; opt.textContent = status; stEl.appendChild(opt); stEl.value = opt.value;
+                    // avoid duplicate options
+                    if (!Array.from(stEl.options || []).some(o => (o.value || '').toLowerCase() === String(status).toLowerCase() || (o.textContent || '').toLowerCase() === String(status).toLowerCase())) {
+                      const opt = document.createElement('option'); opt.value = status; opt.textContent = status; stEl.appendChild(opt); stEl.value = opt.value;
+                    } else {
+                      stEl.value = status;
+                    }
                   }
                 } else if (status) {
-                  // try calendar row / plain td fallback (status likely in children[2])
-                  try {
-                    if (tr.children && tr.children[2]) tr.children[2].textContent = status;
-                  } catch (e) { /* ignore */ }
+                  // write into cells.statusCell if detected, otherwise try to pick a safe cell
+                  const statusCell = cells.statusCell || (cells.tds && cells.tds.slice().reverse().find(td => !td.querySelector('.row-select') && !(td.classList && td.classList.contains('meta-cell')) && td !== cells.fullnameTd));
+                  if (statusCell) statusCell.textContent = status;
                 }
               } catch (e) { /* ignore */ }
 
@@ -1095,18 +1241,17 @@
                 if (sel.options[0]) sel.options[0].textContent = `Time In: ${tIn ? hhmmToDisplay(tIn) : 'Not Set'}`;
                 if (sel.options[1]) sel.options[1].textContent = `Time Out: ${tOut ? hhmmToDisplay(tOut) : 'Not Set'}`;
               } else {
-                // calendar table uses separate time cells
                 try {
-                  const inCell = tr.querySelector('.time-in-cell') || (tr.children && tr.children[3]);
-                  const outCell = tr.querySelector('.time-out-cell') || (tr.children && tr.children[4]);
-                  if (inCell && tIn) inCell.textContent = hhmmToDisplay(tIn);
-                  if (outCell && tOut) outCell.textContent = hhmmToDisplay(tOut);
+                  const inCell = cells.inCell || tr.querySelector('.time-in-cell');
+                  const outCell = cells.outCell || tr.querySelector('.time-out-cell');
+                  if (inCell && tIn && inCell !== cells.statusCell) inCell.textContent = hhmmToDisplay(tIn);
+                  if (outCell && tOut && outCell !== cells.statusCell) outCell.textContent = hhmmToDisplay(tOut);
                 } catch (e) { /* ignore */ }
                 // fallback for combined IN/OUT layout
                 try {
                   const tds = Array.from(tr.querySelectorAll('td'));
                   const timesTd = tds.find(td => /IN[: ]|OUT[: ]/i.test(td.textContent || ''));
-                  if (timesTd) timesTd.innerHTML = `IN: ${tIn ? hhmmToDisplay(tIn) : 'Not Set'} <br> OUT: ${tOut ? hhmmToDisplay(tOut) : 'Not Set'}`;
+                  if (timesTd && timesTd !== cells.statusCell) timesTd.innerHTML = `IN: ${tIn ? hhmmToDisplay(tIn) : 'Not Set'} <br> OUT: ${tOut ? hhmmToDisplay(tOut) : 'Not Set'}`;
                 } catch (e) { /* ignore */ }
               }
             }
@@ -1251,19 +1396,59 @@
         const d = new Date();
         d.setHours(hh, mm, 0, 0);
         const iso = d.toISOString();
+
+        //Fix for Issue #2 Time out is still being set on the data that has time out on it - ryuzkzqt-ops
+        // filter out rows that already have a timeOut set (check DOM and canonical store)
+        let idsToApply = [];
+        try {
+          const rows = collectRowsData(ids);
+          // attempt to also consult canonical store for existing time_out values
+          let storeRowsMap = null;
+          try {
+            const mod = await import('./attendanceStore.js');
+            const store = mod && (mod.default || mod);
+            if (store) {
+              let srows = [];
+              try { srows = (typeof store.getTodayRows === 'function') ? store.getTodayRows() : (store.getRows ? store.getRows() : []); } catch (ee) { srows = []; }
+              storeRowsMap = new Map((srows || []).map(r => [Number(r.id), r]));
+            }
+          } catch (e) { /* ignore store import errors */ }
+
+          idsToApply = (rows || []).filter(r => {
+            try {
+              const domHas = (r.timeOut && String(r.timeOut).trim().length);
+              if (domHas) return false; // skip if DOM already shows timeOut
+              // check store record (prefer canonical source)
+              if (storeRowsMap && storeRowsMap.has(Number(r.id))) {
+                const sr = storeRowsMap.get(Number(r.id));
+                const cand = sr && (sr.time_out || sr.timeOut || sr.student_time_out || sr.studentTimeOut || sr.checked_out_at || '');
+                if (cand && String(cand).trim().length) return false; // skip if store has time out
+              }
+              return true; // apply if neither DOM nor store has timeOut
+            } catch (e) { return true; }
+          }).map(r => r.id).filter(Boolean);
+        } catch (e) {
+          idsToApply = ids.slice(); // fallback: try all
+        }
+
+        if (!idsToApply.length) {
+          showNotice('No rows updated', 'Selected rows already have Time Out values');
+          return;
+        }
+
         try {
           if (!window.attendyAPI || typeof window.attendyAPI.setTimeoutForRows !== 'function') {
             console.error('attendyAPI.setTimeoutForRows not available');
             showNotice('Timeout API', 'Timeout API not available');
             return;
           }
-          await window.attendyAPI.setTimeoutForRows(ids, iso);
+          await window.attendyAPI.setTimeoutForRows(idsToApply, iso);
           // update local store cache so UI updates immediately
           try {
             const mod = await import('./attendanceStore.js');
             const store = mod.default;
             if (typeof store.setTimeoutForRows === 'function') {
-              await store.setTimeoutForRows(ids, iso);
+              await store.setTimeoutForRows(idsToApply, iso);
             } else {
               // fallback to refresh if available
               try { await store.refreshAttendance(); } catch (e) { /* ignore */ }
@@ -1864,7 +2049,7 @@
                   defaultTime = opt.replace(/^[^0-9]*/, '').trim();
                 }
                 showEditPanel(tr);
-                if (typeof editTimeOut !== 'undefined' && editTimeOut) { editTimeOut.value = defaultTime || ''; editTimeOut.focus(); }
+                if (typeof editTimeOut !== 'undefined' && editTimeOut) { editTimeOut.value = parseTimeToHHMM(defaultTime) || ''; editTimeOut.focus(); }
               } catch (e) { /* ignore */ }
               return;
             }
@@ -1877,7 +2062,7 @@
                   defaultTime = opt.replace(/^[^0-9]*/, '').trim();
                 }
                 showEditPanel(tr);
-                if (typeof editTimeIn !== 'undefined' && editTimeIn) { editTimeIn.value = defaultTime || ''; editTimeIn.focus(); }
+                if (typeof editTimeIn !== 'undefined' && editTimeIn) { editTimeIn.value = parseTimeToHHMM(defaultTime) || ''; editTimeIn.focus(); }
               } catch (e) { /* ignore */ }
               return;
             }

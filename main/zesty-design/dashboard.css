@@ -904,16 +904,6 @@ tbody tr:last-child td:last-child {
         table-layout: fixed;
       }
 
-      /* I hate this part */
-      th:first-child,
-      td:first-child {
-        max-width: 48px;
-        box-sizing: border-box;
-        padding-left: 8px;
-        padding-right: 8px;
-        text-align: center;
-        white-space: nowrap;
-      }
 
       th:nth-last-child(4),
       td:nth-last-child(3) {

@@ -2,7 +2,8 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:*;">
+  <meta charset="UTF-8" http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:*;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../main/zesty-design/source.css">
   <link rel="stylesheet" href="../main/zesty-design/dashboard.css">
@@ -424,7 +425,7 @@
           <table>
             <caption class="caption-download">
               <div class="option-caption">
-                <button id="download-sheet-specDate" class="as-excel">
+                <button id="open-download-option-panel" class="as-excel">
                   <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
                     fill="#000000">
                     <path
@@ -818,12 +819,12 @@
     <div class="download-option-card">
       <h3>Download Options</h3>
       <p>Select base on what days/weeks/months to download:</p>
-      <div class="select-container">
+      <div class="select-container download-option-select">
         <select name="download-option-select" id="download-option-select" class="select-box-download">
           <option value="Today">Today</option>
-          <option value="specific-week">Specific Week</option>
-          <option value="specific-month">Specific Month</option>
-          <option value="specific-year">Specific Year</option>
+          <option value="this-week">Specific Week</option>
+          <option value="this-month">This Month</option>
+          <option value="this-year">this Year</option>
         </select>
       </div>
 
@@ -835,11 +836,11 @@
         </select>
       </div>
 
-              <div class="actions">
-                <button id="download-excel-btn" class="as-excel">Download</button>
-              </div>
+      <div class="actions">
+        <button id="download-specDate-btn" class="as-excel">Download</button>
       </div>
     </div>
+  </div>
 
   <!-- Notice Panel -->
   <div class="notice-panel">
@@ -859,7 +860,7 @@
       <label for="file-name-input">File Name:</label>
       <input type="text" name="filename" id="file-name-input" placeholder="Enter file name here..">
       <div class="actions">
-        <button id="download-sheet" class="as-excel">Export/Download as Excel</button>
+        <button id="download-today-sheet" class="as-excel">Export/Download as Excel</button>
         <button id="import-attendance-btn" class="btn-import">Import from Excel</button>
       </div>
     </div>
